@@ -1,10 +1,10 @@
 # Team 5 Project
 
 ### Team Overview ###
-Shymon Samsel, Github: ssamsel/szzymon
-First Last, Github: username
-First Last, Github: username
-First Last, Github: username
+Shymon Samsel, Github: ssamsel/szzymon  
+First Last, Github: username  
+First Last, Github: username  
+First Last, Github: username  
 
 ### Innovative Idea ###
 This is our innovative idea...
