@@ -1,7 +1,7 @@
 # Team 5 Project
 
 ### Team Overview ###
-Shymon Samsel, Github: ssamsel
+Shymon Samsel, Github: ssamsel/szzymon
 First Last, Github: username
 First Last, Github: username
 First Last, Github: username
