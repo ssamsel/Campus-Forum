@@ -1,6 +1,20 @@
 # Team 5 Project
 
-You are to start your team project here. Read the documentation for
-[Pr2: Creative Idea](https://umass-cs-326.github.io/docs/project/Idea/) and replace this paragraph with your team's
-creative web application idea!
+### Team Overview ###
+Shymon Samsel, Github: ssamsel/szzymon
+First Last, Github: username
+First Last, Github: username
+First Last, Github: username
 
+### Innovative Idea ###
+This is our innovative idea...
+
+### Data ###
+This is the list of data our application will support
+
+### Functionality ###
+This is the list of functionality our application will support
+With a brief description of each
+
+### License ###
+License TBD
