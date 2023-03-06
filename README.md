@@ -1,9 +1,9 @@
 # Team 5 Project
 
 ### Team Overview ###
-Shymon Samsel, Github: ssamsel/szzymon  
-Pablo Almeida, Github: pabloooooo  
-First Last, Github: username  
+Shymon Samsel, GitHub: ssamsel/szzymon  
+Pablo Almeida, GitHub: pabloooooo  
+First Last, GitHub: username  
 First Last, Github: username  
 
 ### Innovative Idea ###
