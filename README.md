@@ -34,9 +34,10 @@ The four types of data our application will use are:
     - The count/button will be alongside the element
 
 ### Functionality ###
-
-This is the list of functionality our application will support  
-With a brief description of each
+1. Users will be able to create posts about life on campus or official events happening on campus. They will be able to press a button to create a post, type in a title, attach a picture or a message about something on campus and then press another button to post it. Then, other users will be able to see what they have posted.
+2. Users will be able to respond to posts using comments. After reading a post, they will be able to press a “reply” button, write their thoughts about it, and then press another button to attach it to the post. It will then be viewable by other users looking at the post, and they will be in turn able to reply to the comment and start a discussion.
+3. Users will be able to like posts and comments. There will be a button that when pressed will like the post or comment. These likes will be kept track of and can be used to make good, relevant posts and comments more visible to other users.
+4. Posts about official events can advertise times and locations and will allow other users to press a button to RSVP. This will serve as a way to limit attendees and communicate interest in a specific event to others on campus as well as event organizers.
 
 ### License ###
 
