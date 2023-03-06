@@ -17,4 +17,4 @@ This is the list of functionality our application will support
 With a brief description of each
 
 ### License ###
-License TBD
+[Apache V2 License](https://opensource.org/license/apache-2-0/)
