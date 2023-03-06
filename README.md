@@ -4,8 +4,8 @@
 
 Shymon Samsel, GitHub: ssamsel/szzymon  
 Pablo Almeida, GitHub: pabloooooo  
-First Last, GitHub: username  
-First Last, Github: username  
+Nithin Joshy, GitHub: njoshy300  
+Anish Gupta, Github: Anish-Gupta03  
 
 ### Innovative Idea ###
 
