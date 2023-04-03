@@ -43,3 +43,15 @@ ANY USER -> CLICK ON POST -> PAGE FOR THAT POST
 - [Homepage Mockup](forums.html)
 - [Login Page Mockup](login.html)
 - [Post Page Mockup](post.html)
+
+# Homepage
+
+![Homepage](screenshots/forums_html.png)
+
+# Login
+
+![Login](screenshots/login_html.png)
+
+# Posts
+
+![Posts](screenshots/post_html.png)
