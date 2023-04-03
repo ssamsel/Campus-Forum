@@ -2,56 +2,44 @@
 
 ## Wireframe
 
-Facilis quas ut iste nam et. Doloribus ut nostrum nobis ut ut eos quia vel soluta. Minus dolorem error neque voluptas ex.
-
-![Wireframe 1](wireframe-1.png)
-
-Consequuntur reiciendis illo non suscipit necessitatibus dolores doloribus sed atque. Quos rem excepturi ut eum et eaque facere et. Illo quos voluptatem ratione sint numquam dolor assumenda. Ea et et sapiente distinctio et aut aspernatur necessitatibus est.
- 
-Est velit debitis enim. Esse et et quos animi animi. Quibusdam et porro et praesentium maiores dolores facilis. Voluptas molestias sapiente aperiam culpa. Et doloribus maiores omnis quisquam dolores.
- 
-Esse est et ut rem et praesentium quibusdam eaque. Aut consectetur illum placeat repellendus nam. Exercitationem dolorem tempora.
-
-![Wireframe 2](wireframe-2.png)
-
-Qui commodi beatae. Quaerat saepe tempora nisi labore ducimus corporis adipisci repellat nihil. Dolores est sed ratione consequatur est magnam cupiditate. Repellendus molestias qui doloribus. Deserunt quidem temporibus. Sunt hic laudantium vitae natus est.
-
+The wireframes for our website are for the desktop/laptop UI.  
+We have not created a logo, or decided if we will create one yet, so it is absent from the wireframes.  
+This is what the homepage will resemble when completed:  
+![Homepage](screenshots/home.png)  
+Create account and login page:  
+![Login page](screenshots/login.png)  
+A page of an example thread/discussion:  
+![Thread](screenshots/post_disc.png)
 ## Stories
 
 ### Story 1
-
-Omnis sed consequatur beatae laudantium voluptatem tenetur. Exercitationem omnis quisquam omnis. Tenetur vitae excepturi rerum quia corporis soluta qui iste necessitatibus. Aut quam autem cum et. Harum consequatur perspiciatis eum et temporibus nisi qui pariatur.
+When a user first navigates to our website, they will land on the homepage. The homepage will show a list of the threads sorted by newest reply. To start a thread, the user must have an account and be logged in. To see if they are logged in, either "Create Account/Login" or their username and avatar will be displayed at the top right.  
+![Login link](screenshots/stories/login.png)  
+Upon clicking the link above, or trying to post when not logged in, the user will be brought to the create account/login page, or their profile if they are already logged in.   
+LOGGED IN USER -> CLICK USERNAME/AVATAR -> USER'S PROFILE PAGE  
+NON LOGGED IN USER -> CLICK CREATE ACCOUNT/LOGIN -> LOGIN PAGE  
+NON LOGGED IN USER -> TRY TO MAKE POST -> LOGIN PAGE
 
 ### Story 2
-
-Blanditiis et esse ipsa soluta. Temporibus sunt possimus ut veritatis sint ut in quia eum. Omnis ea vel quae eligendi. Illo optio est doloremque autem. Sit ea dolorum architecto.
- 
-Fuga ea culpa eaque molestiae illo quod odio culpa. Et aut repellendus aut temporibus quae quia et. Quia consectetur quod est. Repellat animi amet quia velit.
- 
-Voluptatum accusantium dolores cumque sit accusamus. Eaque quia qui commodi rerum eos doloribus. Sint aliquam quae ut ut tempora pariatur qui.
+At the login page, a preexisting user can enter their credentials and automatically be returned to the page that brought them to the login prompt. A new user can enter information to create an account, and be returned to the page that brought them to the login page.  
+LOGIN PAGE -> LOG IN / CREATE ACCOUNT -> PREVIOUS PAGE  
+![Login page](screenshots/stories/login_page.png)
 
 ### Story 3
+To start a thread or to reply to a thread, the user can type in the large text box at the bottom of the page. An image can be attached to the post via the upload image button. To post what they have written, along with the image (if uploaded), the user can click the submit or comment buttons. The user is then forwarded to the page where their post can be found.  
+LOGGED IN USER -> MAKE POST AND SUBMIT -> POST'S PAGE  
+![Create post](screenshots/stories/create_post.png)  
 
-Esse itaque quia est nam. Ut voluptate voluptatem tempora officia. Minus et repellendus ut aut. Aut sint sint distinctio perferendis voluptas. Aut libero qui reprehenderit. Quia dolor ratione dolore porro.
- 
-Est quod dolor natus. Nihil provident omnis. Exercitationem voluptate earum. Earum doloremque voluptates quia eos qui suscipit dicta.
- 
-Optio ea sit minima cum consequatur at ut incidunt. Ea voluptatem iure modi officiis. Distinctio eum nemo soluta nulla.
+### Story 4
+A user can search within a thread or the whole website in the dialog box at the top right of the page. The search results will be displayed similarly to how the posts are displayed on the home page.  
+ANY USER -> PUT TEXT IN SEARCH BOX AND CLICK/HIT ENTER -> SEARCH RESULTS PAGE SIMILAR TO HOMEPAGE   
+![Search box](screenshots/stories/search.png)
 
+### Story 5
+After a user posts or clicks on another post, they will be brought to the page for that post.  
+ANY USER -> CLICK ON POST -> PAGE FOR THAT POST
 ## HTML & CSS Mockup
 
-Reiciendis velit dolorum voluptas earum. Rerum nobis accusantium laudantium minima incidunt. Magnam aut minus minus. Cumque unde voluptatibus soluta molestias perspiciatis aperiam accusantium laborum quo.
-
-![HTML & CSS Mockup 1](mockup-1.png)
-
-Natus est molestias est et autem non in. Laudantium consequatur facilis perferendis. Saepe similique sapiente rem ut. Laudantium natus voluptas delectus molestiae ab omnis quidem. Maxime cumque porro ea deleniti incidunt nihil cupiditate sunt. Nihil eaque porro nemo veritatis.
-
-![HTML & CSS Mockup 2](mockup-2.png)
-
-Ipsam architecto nulla ut dolor dolor sit mollitia deleniti minus. Velit quia iste.
-
-## References
-
-- [Link 1](https://example.com)
-- [Link 2](https://example.com)
-- [Link 3](https://example.com)
+- [Homepage Mockup](forums.html)
+- [Login Page Mockup](login.html)
+- [Post Page Mockup](post.html)
