@@ -10,6 +10,10 @@ h2 {
 	color: #881C1C;
 }
 
+.text-input {
+	/*box-sizing: border-box:6;*/
+  }
+
 a {
 	color: #881C1C;
 }
@@ -49,6 +53,11 @@ a {
 	font-weight: 350;
 	font-size: 14px;
 	color: #881C1C;
+}
+.big-text {
+	font-weight: 700;
+	font-size: 24px;
+	color:  #881C1C;
 }
 
 .small-text {
@@ -158,6 +167,12 @@ a {
 }
 
 .new-thread-button {
+	background: #881C1C;
+	color: white;
+	width: 10%;
+	border-radius: 50px;
+}
+.login-btn {
 	background: #881C1C;
 	color: white;
 	width: 10%;
