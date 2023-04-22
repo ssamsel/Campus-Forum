@@ -55,26 +55,29 @@ async function server(request, response) {
         return;
     }
 
-    if (method == 'POST' && pathname.startsWith('/createAccount')) {
+    if (method == 'POST' && pathname.startsWith('/server/createAccount')) {
         createAccount(response, options);
         return;
     }
 
-    if (method === 'GET' && pathname.startsWith('/client')) {
+    if (method === 'GET' && !pathname.startsWith('/server')) {
         try {
             let type = '';
             if (pathname.endsWith('.css')) {
                 type = 'text/css';
             } else if (pathname.endsWith('.js')) {
                 type = 'text/javascript';
-            } else if (pathname.endsWith('.html')) {
+            } else if (pathname.endsWith('.html') || pathname === "/") {
                 type = 'text/html';
-            } else {
+            }
+            else if (pathname.endsWith('.png')) {
+                type = 'text/plain'
+            }
+            else {
                 type = 'text/plain';
             }
 
-
-            const data = await readFile(filePathPrefix + pathname, 'utf8');
+            const data = pathname != "/" ? await readFile(filePathPrefix + pathname, 'utf8') : '<head><meta http-equiv="Refresh" content="0; URL=client/forums.html" /></head>';
             response.writeHead(200, { 'Content-Type': type });
             response.write(data);
         }

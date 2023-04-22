@@ -14,7 +14,7 @@ async function hashPw(password) {
 
 export async function logIn(username, password) {
     const hash = await hashPw(password);
-    const response = await fetch(`http://${SERVER_IP_PORT_TUPLE}/login?${username}=${hash}`,
+    const response = await fetch(`http://${SERVER_IP_PORT_TUPLE}/server/login?${username}=${hash}`,
         { method: 'POST' }
     );
     const data = await response.json();
@@ -23,7 +23,7 @@ export async function logIn(username, password) {
 
 export async function createAccount(username, password) {
     const hash = await hashPw(password);
-    const response = await fetch(`http://${SERVER_IP_PORT_TUPLE}/createAccount?${username}=${hash}`,
+    const response = await fetch(`http://${SERVER_IP_PORT_TUPLE}/server/createAccount?${username}=${hash}`,
         { method: 'POST' }
     );
     const data = await response.json();
