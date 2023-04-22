@@ -1,6 +1,7 @@
 import * as http from 'http';
 import * as url from 'url';
 import PouchDB from 'pouchdb';
+import { readFile } from 'fs/promises';
 
 const DEFAULT_PORT = 3000;
 
@@ -12,7 +13,9 @@ const headerFields = { 'Content-Type': 'application/json', 'Access-Control-Allow
 
 
 
-
+async function createAccount(response, options) {
+    console.log(options);
+}
 
 async function server(request, response) {
     const parsedURL = url.parse(request.url, true);
@@ -20,13 +23,45 @@ async function server(request, response) {
     const pathname = parsedURL.pathname;
     const method = request.method;
 
+    if (method === "OPTIONS") {
+        response.writeHead(200, headerFields);
+        response.end();
+        return;
+    }
+
     if (method == 'POST' && pathname.startsWith('/createAccount')) {
         createAccount(response, options);
+        return;
+    }
+
+    if (method === 'GET' && pathname.startsWith('/client')) {
+        try {
+            let type = '';
+            if (pathname.endsWith('.css')) {
+                type = 'text/css';
+            } else if (pathname.endsWith('.js')) {
+                type = 'text/javascript';
+            } else if (pathname.endsWith('.html')) {
+                type = 'text/html';
+            } else {
+                type = 'text/plain';
+            }
+
+            const data = await readFile(`app${pathname}`, 'utf8');
+            response.writeHead(200, { 'Content-Type': type });
+            response.write(data);
+        }
+        catch (err) {
+            console.error(err);
+            response.statusCode = 404;
+            response.write(`Not Found: ${pathname}`);
+        }
+        response.end();
+        return;
     }
 }
 
-// Start server on port from argv[1]
-// Default 3000
+// Start server on port from argv[1] or DEFAULT_PORT
 if (process.argv.length > 3) {
     console.error(`Usage: node ${process.argv[1]} <port>`);
     process.exit(1);
