@@ -1,0 +1,189 @@
+body {
+	font-family: helvetica;
+	font-style: normal;
+
+}
+
+h2 {
+	font-weight: 900;
+	font-size: 22px;
+	color: #881C1C;
+}
+
+.text-input {
+	/*box-sizing: border-box:6;*/
+  }
+
+a {
+	color: #881C1C;
+}
+
+.avatar {
+	height: 15px;
+	width: 15px;
+}
+
+.new_thread {
+	height: 1.5%;
+	width: 1.5%;
+}
+
+.comment {
+	width: 25px;
+	height: 25px;
+}
+
+.text-input {
+	box-sizing: border-box;
+	6 background: #FFFFFF;
+	border: 1px solid #CAD2CE;
+	border-radius: 20px;
+}
+
+.medium-text {
+	display: inline-block;
+	font-weight: 700;
+	font-size: 18px;
+	color: #881C1C;
+}
+
+.comment-text {
+	display: inline-block;
+	vertical-align: top;
+	font-weight: 350;
+	font-size: 14px;
+	color: #881C1C;
+}
+.big-text {
+	font-weight: 700;
+	font-size: 24px;
+	color:  #881C1C;
+}
+
+.small-text {
+	font-weight: 400;
+	font-size: 14px;
+	color: #27292E;
+}
+
+.form-rounded {
+	border-radius: 1rem;
+}
+
+.forum-header {
+	display: flex;
+	align-items: center;
+	background-color: rgba(136, 28, 28, 0.07);
+
+	border: 1px;
+	border-style: solid;
+	border-color: slategray;
+	border-radius: 20px 20px 0px 0px;
+	border-bottom: none;
+
+	color: #881C1C;
+
+	font-weight: 800;
+	font-size: 18px;
+	line-height: 50px;
+	height: 50px;
+}
+
+.forum {
+	display: flex;
+	align-items: center;
+
+	border: 1px;
+	border-style: solid;
+	border-color: slategray;
+	border-top: none;
+
+	height: 100px;
+	color: #881C1C;
+	font-weight: 600;
+	font-size: 18px;
+}
+
+.post {
+	display: flex;
+	align-items: center;
+
+	border: 1px;
+	border-style: solid;
+	border-color: slategray;
+	border-top: none;
+
+	color: #881C1C;
+	font-weight: 400;
+	font-size: 14px;
+}
+
+.bottom-row {
+	display: flex;
+	border-bottom-left-radius: 1.5rem;
+	border-bottom-right-radius: 1.5rem;
+}
+
+.row-item {
+	text-align: center;
+}
+
+.circle-div {
+	width: 30px;
+	border-radius: 5rem;
+	border: 1px;
+	border-color: rgba(9, 117, 60, 0.2);
+	border-style: dotted;
+	display: inline-block;
+}
+
+.author-div {
+	width: 100%;
+	border-radius: 1.25rem;
+	background-color: rgba(217, 217, 217, 0.25);
+	display: inline-block;
+
+	font-weight: 400;
+	font-size: 14px;
+}
+
+.poster-div {
+	display: inline-block;
+	width: 50%;
+	height:30px;
+
+	border-radius: 1.25rem;
+	background-color: rgba(217, 217, 217, 0.25);
+
+	font-weight: 300;
+	font-size: 12px;
+}
+
+.thread-create-div {
+	background: #FFFFFF;
+	border: 1px solid #CAD2CE;
+	box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.12);
+	border-radius: 20px;
+}
+
+.new-thread-button {
+	background: #881C1C;
+	color: white;
+	width: 10%;
+	border-radius: 50px;
+}
+.login-btn {
+	background: #881C1C;
+	color: white;
+	width: 10%;
+	border-radius: 50px;
+}
+
+.vl {
+	display: inline-block;
+ 	border-left: 2px solid black;
+ 	margin-right: 15px;
+ 	background-color: white;
+ 	height: 25px;
+ 	width: 2px;
+}

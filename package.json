@@ -3,9 +3,10 @@
   "version": "1.0.0",
   "description": "## Minuteman Messageboard ##",
   "type": "module",
-  "main": "index.js",
+  "main": "app/server.js",
   "directories": {
-    "doc": "docs"
+    "doc": "docs",
+    "app": "app"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
