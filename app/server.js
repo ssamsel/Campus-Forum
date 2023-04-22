@@ -2,8 +2,6 @@ import * as http from 'http';
 import * as url from 'url';
 import PouchDB from 'pouchdb';
 import { readFile } from 'fs/promises';
-import { setDefaultResultOrder } from 'dns';
-import { send } from 'process';
 
 const DEFAULT_PORT = 3000;
 
