@@ -61,13 +61,18 @@ async function server(request, response) {
     }
 
     if (method === 'GET' && !pathname.startsWith('/server')) {
+        if (pathname === "/") {
+            response.writeHead(301, { Location: "/client/forums.html" });
+            response.end();
+            return;
+        }
         try {
             let type = '';
             if (pathname.endsWith('.css')) {
                 type = 'text/css';
             } else if (pathname.endsWith('.js')) {
                 type = 'text/javascript';
-            } else if (pathname.endsWith('.html') || pathname === "/") {
+            } else if (pathname.endsWith('.html')) {
                 type = 'text/html';
             }
             else if (pathname.endsWith('.png')) {
@@ -77,7 +82,7 @@ async function server(request, response) {
                 type = 'text/plain';
             }
 
-            const data = pathname != "/" ? await readFile(filePathPrefix + pathname, 'utf8') : '<head><meta http-equiv="Refresh" content="0; URL=client/forums.html" /></head>';
+            const data = await readFile(filePathPrefix + pathname, 'utf8');
             response.writeHead(200, { 'Content-Type': type });
             response.write(data);
         }
