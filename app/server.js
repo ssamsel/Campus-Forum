@@ -5,7 +5,11 @@ import { readFile } from 'fs/promises';
 
 const DEFAULT_PORT = 3000;
 
-const accounts_db = new PouchDB("db/accounts");
+// This is to ensure that no matter where the server is run from, the path is always valid
+// This regex removes the ending "server.js" and replaces it with the path to the requested resource
+const filePathPrefix = process.argv[1].replace(/server\.js$/, "");
+
+const accounts_db = new PouchDB(filePathPrefix + "/db/accounts");
 
 // This is to allow for accessing the server from the same IP origin
 // Will probably be modified once this is properly deployed
@@ -15,7 +19,7 @@ const headerFields = { 'Content-Type': 'application/json', 'Access-Control-Allow
 // sendError(response: HTTPresponse, code: number, message: string): void
 async function sendError(response, code, message) {
     response.writeHead(code, headerFields);
-    response.write({ error: message });
+    response.write(JSON.stringify({ error: message }));
     response.end();
 }
 
@@ -25,26 +29,18 @@ async function accountExists(username) {
     return docs.rows.some(x => x.id === username);
 }
 
-function invalidPassword(password) {
-    // TODO: Add more things that constitute and invalid password
-    return password.length < 5;
-}
 
 async function createAccount(response, options) {
-    const username = options.keys()[0];
-
+    const username = Object.keys(options)[0];
     if (await accountExists(username)) {
-        await sendError(response, 404, `Username: ${username} taken`);
-        return;
-    }
-    if (invalidPassword(options[username])) {
-        await sendError(response, 404, `Invalid password`);
+        await sendError(response, 404, `Username '${username}' taken`);
         return;
     }
 
     await accounts_db.put({ _id: username, pwHash: options[username] });
     response.writeHead(200, headerFields);
-    response.write("Account Created");
+    response.write(JSON.stringify({ success: "Account created" }));
+    response.end();
 }
 
 async function server(request, response) {
@@ -77,11 +73,8 @@ async function server(request, response) {
                 type = 'text/plain';
             }
 
-            // This is to ensure that no matter where the server is run from, the http path is always valid
-            // This regex removes the ending "server.js" and replaces it with the path to the requested resource
-            const filePath = process.argv[1].replace(/server\.js$/, pathname);
 
-            const data = await readFile(filePath, 'utf8');
+            const data = await readFile(filePathPrefix + pathname, 'utf8');
             response.writeHead(200, { 'Content-Type': type });
             response.write(data);
         }
