@@ -44,7 +44,7 @@ async function createAccount(response, options) {
         return;
     }
 
-    await accounts_db.put({ _id: username, password: options[username] });
+    await accounts_db.put({ _id: username, pwHash: options[username] });
     response.writeHead(200, headerFields);
     response.write("Account Created");
 }
