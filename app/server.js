@@ -10,8 +10,9 @@ const DEFAULT_PORT = 3000;
 const filePathPrefix = process.argv[1].replace(/server\.js$/, "");
 
 const accounts_db = new PouchDB(filePathPrefix + "/db/accounts");
+const posts_db = new PouchDB(filePathPrefix + '/db/posts');
 
-const accountsLoggedIn = [];
+const accountsLoggedIn = {};
 
 // This is to allow for accessing the server from the same IP origin
 // Will probably be modified once this is properly deployed
@@ -54,9 +55,7 @@ async function login(response, options) {
     const username = Object.keys(options)[0];
     if (await accountExists(username)) {
         if (await checkPwHash(username, options[username])) {
-            if (!accountsLoggedIn.includes(username)) {
-                accountsLoggedIn.push(username);
-            }
+            accountsLoggedIn[username] = true;
             response.writeHead(200, headerFields);
             response.write(JSON.stringify({ success: "Successfully logged in" }));
             response.end();
@@ -71,9 +70,48 @@ async function login(response, options) {
 async function logout(response, options) {
     const username = Object.keys(options)[0];
     if (await accountExists(username) && await checkPwHash(username, options[username])) {
-        accountsLoggedIn.splice(accountsLoggedIn.indexOf(username), 1);
+        delete accountsLoggedIn[username];
     }
     response.writeHead("200", headerFields);
+    response.end();
+}
+
+async function createThread(response, options) {
+    const data = JSON.parse(options.data);
+    const username = data.user;
+    const pwHash = data.pwHash;
+    const post = data.postData;
+
+    if (username === null || pwHash === null) {
+        await sendError(response, 400, "You must be logged in to create a thread");
+    }
+    if (post === undefined) {
+        await sendError(response, 400, "Missing post in request");
+    }
+
+    if (!await accountExists(username) || !await checkPwHash(username, pwHash)) {
+        // This error is vague on purpose as it would only be triggered when somebody is trying to exploit
+        await sendError(response, 400, "Bad Request");
+        return;
+    }
+
+    if (accountsLoggedIn[username] !== true) {
+        await sendError(response, 400, "You must be logged in to create a thread");
+        return;
+    }
+
+    if (post.title === "" || post.title === undefined) {
+        await sendError(response, 400, "A thread title is required");
+        return;
+    }
+
+    if (post.text === "" || post.text === undefined) {
+        await sendError(response, 400, "Thread body text is required");
+        return;
+    }
+
+    response.writeHead(200, headerFields);
+    response.write(JSON.stringify({ success: "Thread Created" }))
     response.end();
 }
 
@@ -89,18 +127,23 @@ async function server(request, response) {
         return;
     }
 
-    if (method == 'PUT' && pathname.startsWith('/server/createAccount')) {
+    if (method === 'PUT' && pathname.startsWith('/server/createAccount')) {
         createAccount(response, options);
         return;
     }
 
-    if (method == 'POST' && pathname.startsWith('/server/login')) {
+    if (method === 'POST' && pathname.startsWith('/server/login')) {
         login(response, options);
         return;
     }
 
-    if (method == 'POST' && pathname.startsWith('/server/logout')) {
+    if (method === 'POST' && pathname.startsWith('/server/logout')) {
         logout(response, options);
+        return;
+    }
+
+    if (method === 'POST' && pathname.startsWith('/server/createThread')) {
+        createThread(response, options);
         return;
     }
 

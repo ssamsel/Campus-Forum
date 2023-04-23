@@ -23,3 +23,11 @@ export async function logOut(username, hash) {
         { method: 'POST' }
     );
 }
+export async function createThread(username, hash, post) {
+    const message = JSON.stringify({ user: username, pwHash: hash, postData: post });
+    const response = await fetch(`http://${SERVER_IP_PORT_TUPLE}/server/createThread?data=${message}`,
+        { method: 'POST' }
+    );
+    const data = await response.json();
+    return data;
+}
