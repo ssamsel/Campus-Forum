@@ -11,7 +11,7 @@ const filePathPrefix = process.argv[1].replace(/server\.js$/, "");
 
 const accounts_db = new PouchDB(filePathPrefix + "/db/accounts");
 
-const accountsLoggedIn = [];
+const accountsLoggedIn = {};
 
 // This is to allow for accessing the server from the same IP origin
 // Will probably be modified once this is properly deployed
@@ -54,8 +54,8 @@ async function login(response, options) {
     const username = Object.keys(options)[0];
     if (await accountExists(username)) {
         if (await checkPwHash(username, options[username])) {
-            if (!accountsLoggedIn.includes(username)) {
-                accountsLoggedIn.push(username);
+            if (accountsLoggedIn[username] === undefined) {
+                accountsLoggedIn[username] = true;
             }
             response.writeHead(200, headerFields);
             response.write(JSON.stringify({ success: "Successfully logged in" }));
