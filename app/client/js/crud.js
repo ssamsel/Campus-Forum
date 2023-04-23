@@ -10,7 +10,6 @@ export async function logIn(username, hash) {
     const data = await response.json();
     return data;
 }
-
 export async function createAccount(username, hash) {
     const response = await fetch(`http://${SERVER_IP_PORT_TUPLE}/server/createAccount?${username}=${hash}`,
         { method: 'PUT' }
@@ -30,4 +29,12 @@ export async function createThread(username, hash, post) {
     );
     const data = await response.json();
     return data;
+}
+export async function deleteThread(username, hash, post){
+    const response = await fetch(`http://${SERVER_IP_PORT_TUPLE}/server/deleteThread?data=${message}`,
+        { method: 'POST' }
+    );
+    const data = await response.json();
+    return data;
+
 }

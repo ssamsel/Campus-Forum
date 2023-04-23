@@ -115,6 +115,16 @@ async function createThread(response, options) {
     response.end();
 }
 
+async function deleteThread(response, options){
+    // TODO: Check if post exists first
+    const data = JSON.parse(options.data);
+    const username = data.user;
+    const pwHash = data.pwHash;
+    const post = data.postData;
+
+    posts_db.remove();
+}
+
 async function server(request, response) {
     const parsedURL = url.parse(request.url, true);
     const options = parsedURL.query;
@@ -144,6 +154,10 @@ async function server(request, response) {
 
     if (method === 'POST' && pathname.startsWith('/server/createThread')) {
         createThread(response, options);
+        return;
+    }
+    if (method === 'DELETE' && pathname.startsWith('/server/deleteThread')) {
+        deleteThread(response, options);
         return;
     }
 
