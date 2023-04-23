@@ -49,8 +49,16 @@ function invalidPw(password) {
 
 
 function invalidUsername(username) {
-    return username.length < 5;
+    if (username.length < 5) {
+        return true; // username is too short
+    }
+    if (!/^[a-zA-Z0-9_]+$/.test(username)) {
+        return true; // username must only contain letters, numbers, and underscores
+    }
+    // TODO: Add more criteria for an invalid username
+    return false; // username meets all criteria for a valid username
 }
+
 
 createAccountButton.addEventListener('click', async (e) => {
     const username = usernameBox.value;
