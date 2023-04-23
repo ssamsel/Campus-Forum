@@ -13,6 +13,7 @@ const accounts_db = new PouchDB(filePathPrefix + "/db/accounts");
 const posts_db = new PouchDB(filePathPrefix + '/db/posts');
 const threads_db = new PouchDB(filePathPrefix + '/db/threads');
 
+
 const accountsLoggedIn = {};
 
 // This is to allow for accessing the server from the same IP origin
