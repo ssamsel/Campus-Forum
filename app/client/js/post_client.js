@@ -8,6 +8,10 @@ const likeButtons = document.querySelectorAll('#like');
 likeButtons.forEach(button => {
   button.addEventListener('click', () => {
     // Your like button functionality here
+    const likeCount = button.querySelector('.like-count');
+    let count = parseInt(likeCount.textContent);
+    count++;
+    likeCount.textContent = count;
   });
 });
 
