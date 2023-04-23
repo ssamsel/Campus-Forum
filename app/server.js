@@ -11,6 +11,7 @@ const filePathPrefix = process.argv[1].replace(/server\.js$/, "");
 
 const accounts_db = new PouchDB(filePathPrefix + "/db/accounts");
 const posts_db = new PouchDB(filePathPrefix + '/db/posts');
+const threads_db = new PouchDB(filePathPrefix + '/db/threads');
 
 const accountsLoggedIn = {};
 
@@ -110,6 +111,7 @@ async function createThread(response, options) {
         return;
     }
 
+
     response.writeHead(200, headerFields);
     response.write(JSON.stringify({ success: "Thread Created" }))
     response.end();
@@ -117,6 +119,7 @@ async function createThread(response, options) {
 
 async function deleteThread(response, options){
     // TODO: Check if post exists first
+    // Check if the user who created the post is the same user logged in.
     const data = JSON.parse(options.data);
     const username = data.user;
     const pwHash = data.pwHash;

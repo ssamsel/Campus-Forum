@@ -29,9 +29,24 @@ if (window.sessionStorage.getItem("username") !== null) {
 
 
 function invalidPw(password) {
-    // TODO: Add more criteria for an invalid password
-    return password.length < 5;
+    if (password.length < 5) {
+        return true; // password is too short
+    }
+    if (!/[a-z]/.test(password)) {
+        return true; // password must contain at least one lowercase letter
+    }
+    if (!/[A-Z]/.test(password)) {
+        return true; // password must contain at least one uppercase letter
+    }
+    if (!/\d/.test(password)) {
+        return true; // password must contain at least one number
+    }
+    if (!/[!@#$%^&*()\-_=+{}[\]\\|;:'",.<>/?]/.test(password)) {
+        return true; // password must contain at least one special character
+    }
+    return false; // password meets all criteria for a valid password
 }
+
 
 function invalidUsername(username) {
     return username.length < 5;
