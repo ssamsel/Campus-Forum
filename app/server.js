@@ -71,7 +71,7 @@ async function login(response, options) {
 async function logout(response, options) {
     const username = Object.keys(options)[0];
     if (await accountExists(username) && await checkPwHash(username, options[username])) {
-        accountsLoggedIn.splice(accountsLoggedIn.indexOf(username), 1);
+        delete accountsLoggedIn[username];
     }
     response.writeHead("200", headerFields);
     response.end();
