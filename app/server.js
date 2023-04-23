@@ -54,7 +54,9 @@ async function login(response, options) {
     const username = Object.keys(options)[0];
     if (await accountExists(username)) {
         if (await checkPwHash(username, options[username])) {
-            accountsLoggedIn.push(username);
+            if (!accountsLoggedIn.includes(username)) {
+                accountsLoggedIn.push(username);
+            }
             response.writeHead(200, headerFields);
             response.write(JSON.stringify({ success: "Successfully logged in" }));
             response.end();
@@ -64,6 +66,15 @@ async function login(response, options) {
         return;
     }
     await sendError(response, 404, `Account ${username} does not exist`);
+}
+
+async function logout(response, options) {
+    const username = Object.keys(options)[0];
+    if (await accountExists(username) && await checkPwHash(username, options[username])) {
+        accountsLoggedIn.splice(accountsLoggedIn.indexOf(username), 1);
+    }
+    response.writeHead("200", headerFields);
+    response.end();
 }
 
 async function server(request, response) {
@@ -85,6 +96,11 @@ async function server(request, response) {
 
     if (method == 'POST' && pathname.startsWith('/server/login')) {
         login(response, options);
+        return;
+    }
+
+    if (method == 'POST' && pathname.startsWith('/server/logout')) {
+        logout(response, options);
         return;
     }
 
