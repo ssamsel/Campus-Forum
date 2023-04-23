@@ -11,6 +11,8 @@ const filePathPrefix = process.argv[1].replace(/server\.js$/, "");
 
 const accounts_db = new PouchDB(filePathPrefix + "/db/accounts");
 
+const accountsLoggedIn = [];
+
 // This is to allow for accessing the server from the same IP origin
 // Will probably be modified once this is properly deployed
 const headerFields = { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': "*", "Access-Control-Allow-Methods": "GET, DELETE, HEAD, OPTIONS, PUT, POST" };
@@ -43,6 +45,27 @@ async function createAccount(response, options) {
     response.end();
 }
 
+async function checkPwHash(username, hash) {
+    const account = await accounts_db.get(username);
+    return account.pwHash === hash;
+}
+
+async function login(response, options) {
+    const username = Object.keys(options)[0];
+    if (await accountExists(username)) {
+        if (await checkPwHash(username, options[username])) {
+            accountsLoggedIn.push(username);
+            response.writeHead(200, headerFields);
+            response.write(JSON.stringify({ success: "Successfully logged in" }));
+            response.end();
+            return;
+        }
+        await sendError(response, 404, `Invalid password`);
+        return;
+    }
+    await sendError(response, 404, `Account ${username} does not exist`);
+}
+
 async function server(request, response) {
     const parsedURL = url.parse(request.url, true);
     const options = parsedURL.query;
@@ -55,8 +78,13 @@ async function server(request, response) {
         return;
     }
 
-    if (method == 'POST' && pathname.startsWith('/server/createAccount')) {
+    if (method == 'PUT' && pathname.startsWith('/server/createAccount')) {
         createAccount(response, options);
+        return;
+    }
+
+    if (method == 'POST' && pathname.startsWith('/server/login')) {
+        login(response, options);
         return;
     }
 

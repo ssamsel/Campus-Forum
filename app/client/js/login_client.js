@@ -20,7 +20,7 @@ createAccountButton.addEventListener('click', async (e) => {
     const password = passwordBox.value;
 
     if (invalidPw(password)) {
-        outputDiv.innerHTML = "<h1>Invalid Password, try again</h1>";
+        outputDiv.innerHTML = "<h1>Password does not meet criteria, try again</h1>";
         return;
     }
     if (invalidUsername(username)) {
@@ -31,6 +31,22 @@ createAccountButton.addEventListener('click', async (e) => {
     const response = await crud.createAccount(username, password);
     if (response.error === undefined) {
         outputDiv.innerHTML = "<h1>" + response.success + "</h1>";
+        return;
+    }
+    outputDiv.innerHTML = "<h1>" + response.error + "</h1>";
+});
+
+loginButton.addEventListener('click', async (e) => {
+    const username = usernameBox.value;
+    const password = passwordBox.value;
+
+    if (username === "" || password === "") {
+        return;
+    }
+
+    const response = await crud.logIn(username, password);
+    if (response.error === undefined) {
+        outputDiv.innerHTML = "<h1>" + response.success + "</h1><a href=/client/forums.html>Return to homepage</a>";
         return;
     }
     outputDiv.innerHTML = "<h1>" + response.error + "</h1>";

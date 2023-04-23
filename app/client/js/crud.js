@@ -24,7 +24,7 @@ export async function logIn(username, password) {
 export async function createAccount(username, password) {
     const hash = await hashPw(password);
     const response = await fetch(`http://${SERVER_IP_PORT_TUPLE}/server/createAccount?${username}=${hash}`,
-        { method: 'POST' }
+        { method: 'PUT' }
     );
     const data = await response.json();
     return data;
