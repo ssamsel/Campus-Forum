@@ -25,21 +25,22 @@ replyButtons.forEach(button => {
 
 async function loadPost() {
   const urlParams = new URLSearchParams(window.location.search);
-  let postID = urlParams.get('post_id');
+  const postId = urlParams.get('post_id');
+  const postData = await crud.getThread(postId);
 
-  let mockTitle = 'How do I print at the library?';
-  let mockAuthor = 'Anish Gupta';
-  let mockPost = `Hi everyone,
+  // let mockTitle = 'How do I print at the library?';
+  // let mockAuthor = 'Anish Gupta';
+  // let mockPost = `Hi everyone,
 
-  I'm a new student at UMass Amherst and I'm having trouble figuring out how to print at the W.E.B Dubois Library. I have some papers due soon and I really need to print them out, but I'm not sure where to start.
+  // I'm a new student at UMass Amherst and I'm having trouble figuring out how to print at the W.E.B Dubois Library. I have some papers due soon and I really need to print them out, but I'm not sure where to start.
   
-  Can anyone walk me through the process of printing at the library? Do I need to bring my own printer or paper? I've heard that I need a UCard to print, but I'm not sure what that is or how to use it. Any advice or guidance would be greatly appreciated.
+  // Can anyone walk me through the process of printing at the library? Do I need to bring my own printer or paper? I've heard that I need a UCard to print, but I'm not sure what that is or how to use it. Any advice or guidance would be greatly appreciated.
   
-  Thank you in advance!`;
+  // Thank you in advance!`;
 
-  title.innerText = mockTitle;
-  author.innerText = mockAuthor;
-  post.innerText = mockPost;
+  title.innerText = postData.title;
+  author.innerText = postData.author;
+  post.innerText = postData.post_body;
 }
 
 await loadPost();

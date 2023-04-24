@@ -35,7 +35,7 @@ export async function createThread(username, hash, post) {
 }
 
 export async function getThread(post) {
-    const response = await fetch(`http://${SERVER_IP_PORT_TUPLE}/server/createThread?post_id=${post}`,
+    const response = await fetch(`http://${SERVER_IP_PORT_TUPLE}/server/getThread?post_id=${post}`,
         { method: 'GET' }
     );
     const data = await response.json();
