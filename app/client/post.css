@@ -10,3 +10,7 @@
   } */
   /* TODO like count isn't being centered in the image */
   
+
+#title-div {
+  display: inline-block;
+}

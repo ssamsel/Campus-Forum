@@ -149,6 +149,8 @@ a {
 
 .poster-div {
 	display: inline-block;
+	vertical-align: middle;
+	line-height: 30px;
 	width: 50%;
 	height:30px;
 
