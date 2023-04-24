@@ -19,7 +19,21 @@ if (username !== null) {
 
 // Get the threads and put them in the page
 const dumpedThreads = await crud.dumpThreads();
-let threads_html = "";
+let threads_html = dumpedThreads.length !== 0 ? "" : `<div class="container-fluid forum bottom-row">
+        <div class="w-50"></div>
+        <div class="col-sm row-item">
+          <div class="circle-div"></div>
+        </div>
+        <div class="col-sm row-item">
+          <div class="circle-div"></div>
+        </div>
+        <div class="col-sm row-item">
+          <p class="small-text"></p>
+          <div class="author-div">
+          </div>
+        </div>
+      </div>`;
+
 dumpedThreads.forEach((x, idx) => {
     const last = idx === dumpedThreads.length - 1 ? "bottom-row" : "";
     const template = `<div class="container-fluid forum ${last}">
