@@ -133,8 +133,9 @@ async function createThread(response, options) {
 
 async function getThread(response, options) {
     // TODO: endpoint to return post info including: title, author, post body.
+    const post = await threads_db.get(options.post_id);
     response.writeHead(200, headerFields);
-    response.write(JSON.stringify({ title: "Title", author: "Author", post_body: "Body" }))
+    response.write(JSON.stringify({ title: post._id, author: post.author, post_body: post.body }))
     response.end();
 }
 

@@ -1,4 +1,4 @@
-const SERVER_IP_PORT_TUPLE = "127.0.0.1:3000";
+export const SERVER_IP_PORT_TUPLE = "127.0.0.1:3000";
 
 
 
