@@ -47,6 +47,7 @@ submit_button.addEventListener("click", async (e) => {
     const response = await crud.createThread(username, pwHash, post_data);
     if (response.error === undefined) {
         output_div.innerHTML = `<h1>${response.success}</h1>`;
+        location.reload();
         return;
     }
     output_div.innerHTML = `<h1>Error: ${response.error}</h1>`;

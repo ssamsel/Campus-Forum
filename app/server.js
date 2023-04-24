@@ -152,13 +152,14 @@ async function dumpThreads(response, options){
     const allDocs = await threads_db.allDocs({include_docs: true});
     const threads = [];
     allDocs.rows.forEach(x => threads.push(x.doc));
+    threads.sort(time.compare);
     response.writeHead(200, headerFields);
     response.write(JSON.stringify(threads.map(x => {
         return {
             author: x.author,
             title: x._id,
             body: x.body,
-            time: time.compareToNow(x.time),
+            time: time.convertToRecencyString(x.time),
             images: x.images,
             posts: x.posts,
         };
