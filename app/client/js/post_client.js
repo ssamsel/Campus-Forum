@@ -1,8 +1,11 @@
 import * as crud from './crud.js';
 
+const title = document.getElementById("title-div");
+const author = document.getElementById("author-div");
+const post = document.getElementById("post-body");
+
 const commentButton = document.getElementById('post_comment');
 const newPostTextBox = document.getElementById('textBox');
-
 
 const likeButtons = document.querySelectorAll('#like');
 likeButtons.forEach(button => {
@@ -14,9 +17,29 @@ likeButtons.forEach(button => {
   });
 });
 
-
 const replyButtons = document.querySelectorAll('#reply');
 replyButtons.forEach(button => {
   button.addEventListener('click', () => {
   });
 });
+
+async function loadPost() {
+  const urlParams = new URLSearchParams(window.location.search);
+  let postID = urlParams.get('post_id');
+
+  let mockTitle = 'How do I print at the library?';
+  let mockAuthor = 'Anish Gupta';
+  let mockPost = `Hi everyone,
+
+  I'm a new student at UMass Amherst and I'm having trouble figuring out how to print at the W.E.B Dubois Library. I have some papers due soon and I really need to print them out, but I'm not sure where to start.
+  
+  Can anyone walk me through the process of printing at the library? Do I need to bring my own printer or paper? I've heard that I need a UCard to print, but I'm not sure what that is or how to use it. Any advice or guidance would be greatly appreciated.
+  
+  Thank you in advance!`;
+
+  title.innerText = mockTitle;
+  author.innerText = mockAuthor;
+  post.innerText = mockPost;
+}
+
+await loadPost();
