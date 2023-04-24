@@ -1,7 +1,7 @@
 import * as crud from './crud.js';
 
 const urlParams = new URLSearchParams(window.location.search);
-const postId = urlParams.get('post_id');
+const postId = urlParams.get('title');
 
 const title = document.getElementById("title-div");
 const author = document.getElementById("author-div");

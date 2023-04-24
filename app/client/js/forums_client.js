@@ -23,7 +23,7 @@ let threads_html = "";
 dumpedThreads.forEach((x, idx) => {
     const last = idx === dumpedThreads.length - 1 ? "bottom-row" : "";
     const template = `<div class="container-fluid forum ${last}">
-        <div class="w-50">${x.title}</div>
+        <div class="w-50"><a href="http://${crud.SERVER_IP_PORT_TUPLE}/client/post.html?title=${x.title}">${x.title}</a></div>
         <div class="col-sm row-item">
           <div class="circle-div">${x.images}</div>
         </div>
