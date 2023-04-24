@@ -17,7 +17,7 @@ export class Timestamp {
         const nowTS = this.now();
         const diff = [];
         nowTS.forEach((val, idx) => {
-            diff.push(timestamp[idx] - val);
+            diff.push(Math.abs(timestamp[idx] - val));
         });
 
         if (diff[0] > 0){
