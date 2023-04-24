@@ -13,7 +13,7 @@ export class Timestamp {
         ];
     }
 
-    compareToNow(timestamp) {
+    convertToRecencyString(timestamp) {
         const nowTS = this.now();
         const diff = [];
         nowTS.forEach((val, idx) => {
@@ -35,8 +35,18 @@ export class Timestamp {
         return diff[4].toString() + " minute" + this._plural(diff[3]) + "ago";
     }
 
+    // compare function for array sorting
+    // a and b are both forum entries
+    compare(a, b){
+       function reducer(acc, val, idx){
+        return acc + val * Math.pow(100, 5-idx); 
+       }
+
+       return b.time.reduce(reducer, 0) - a.time.reduce(reducer, 0);
+    }
+
     _plural(num){
-        return num != 1 ? "s " : " "
+        return num != 1 ? "s " : " ";
     }
 
 }
