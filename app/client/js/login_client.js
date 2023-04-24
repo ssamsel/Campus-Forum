@@ -55,7 +55,6 @@ function invalidUsername(username) {
     if (!/^[a-zA-Z0-9_]+$/.test(username)) {
         return true; // username must only contain letters, numbers, and underscores
     }
-    // TODO: Add more criteria for an invalid username
     return false; // username meets all criteria for a valid username
 }
 

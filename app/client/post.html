@@ -10,7 +10,9 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css"
     integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
   <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="post.css">
 
+  <script type="module" src="js/post_client.js"></script>
 </head>
 
 <body>
@@ -65,9 +67,9 @@
 
           <br><br>
 
-          <textarea class="form-control form-rounded" rows="7" placeholder="What are your thoughts?"></textarea>
+          <textarea id = "textBox" class="form-control form-rounded" rows="7" placeholder="What are your thoughts?"></textarea>
           <br>
-          <button style="float:  right" type="button" class="btn new-thread-button">Comment</button>
+          <button id= "post_comment" style="float:  right" type="button" class="btn new-thread-button">Comment</button>
           <br><br>
         </div>
       </div>
@@ -89,8 +91,15 @@
           <div class="vl"></div>
           <p class="comment-text">Go on umass uprint! You can scan your id at the printer and print there</p>
           <br>
-          <img class="comment" src="img/heart.png" /> Like<div style="display: inline-block; width: 50px"></div><img
-            class="comment" src="img/comment.png" /> Reply
+          <button class="like" id="like-button">
+            <img class="comment" src="img/heart.png" /> 
+            <span class="like-count">0</span>
+            Like
+          </button>
+          <div style="display: inline-block; width: 50px"></div>
+          <button class="reply" id="reply-button">
+            <img class="comment" src="img/comment.png" /> Reply
+          </button>
         </div>
         <br>
         <div>
@@ -99,9 +108,17 @@
           <div class="vl"></div>
           <p class="comment-text">You can do it!!!</p>
           <br>
-          <img class="comment" src="img/heart.png" /> Like<div style="display: inline-block; width: 50px"></div><img
-            class="comment" src="img/comment.png" /> Reply
+          <button class="like" id="like-button">
+            <img class="comment" src="img/heart.png" /> 
+            <span class="like-count">0</span>
+            Like
+          </button>
+          <div style="display: inline-block; width: 50px"></div>
+          <button class="reply" id="reply-button">
+            <img class="comment" src="img/comment.png" /> Reply
+          </button>
         </div>
+        
         <br>
         <div class="ml-5">
           <p class="medium-text">Pablo Almeida</p>
@@ -109,8 +126,15 @@
           <div class="vl"></div>
           <p class="comment-text">Thanks!! 🥰</p>
           <br>
-          <img class="comment" src="img/heart.png" /> Like<div style="display: inline-block; width: 50px"></div><img
-            class="comment" src="img/comment.png" /> Reply
+          <button class="like" id="like-button">
+            <img class="comment" src="img/heart.png" /> 
+            <span class="like-count">0</span>
+            Like
+          </button>
+          <div style="display: inline-block; width: 50px"></div>
+          <button class="reply" id="reply-button">
+            <img class="comment" src="img/comment.png" /> Reply
+          </button>
         </div>
         <br>
       </div>
