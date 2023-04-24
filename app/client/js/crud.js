@@ -34,6 +34,14 @@ export async function createThread(username, hash, post) {
     return data;
 }
 
+export async function getThread(post) {
+    const response = await fetch(`http://${SERVER_IP_PORT_TUPLE}/server/getThread?post_id=${post}`,
+        { method: 'GET' }
+    );
+    const data = await response.json();
+    return data;
+}
+
 export async function deleteThread(username, hash, post) {
     const message = JSON.stringify({ user: username, pwHash: hash, postData: post });
     const response = await fetch(`http://${SERVER_IP_PORT_TUPLE}/server/deleteThread?data=${message}`, 
@@ -51,8 +59,8 @@ export async function dumpThreads(){
     return data;
 }
 
-export async function updateLikeCount(postId, count) {
-    const response = await fetch(`http://${SERVER_IP_PORT_TUPLE}/server/updateLikeCount?postId=${postId}&count=${count}`,
+export async function updateLikeCount(count) {
+    const response = await fetch(`http://${SERVER_IP_PORT_TUPLE}/server/updateLikeCount?count=${count}`,
       { method: 'POST' }
     );
     const data = await response.json();
