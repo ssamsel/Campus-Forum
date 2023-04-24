@@ -118,6 +118,13 @@ async function createThread(response, options) {
     response.end();
 }
 
+async function getThread(response, options) {
+    // TODO: endpoint to return post info including: title, author, post body.
+    response.writeHead(200, headerFields);
+    response.write(JSON.stringify({ title: "Title", author: "Author", post_body: "Body" }))
+    response.end();
+}
+
 async function deleteThread(response, options){
     // TODO: Check if post exists first
     // Check if the user who created the post is the same user logged in.
@@ -160,6 +167,12 @@ async function server(request, response) {
         createThread(response, options);
         return;
     }
+
+    if (method === 'GET' && pathname.startsWith('/server/getThread')) {
+        getThread(response, options);
+        return;
+    }
+
     if (method === 'DELETE' && pathname.startsWith('/server/deleteThread')) {
         deleteThread(response, options);
         return;

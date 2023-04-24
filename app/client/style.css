@@ -35,7 +35,7 @@ a {
 
 .text-input {
 	box-sizing: border-box;
-	6 background: #FFFFFF;
+	background: #FFFFFF;
 	border: 1px solid #CAD2CE;
 	border-radius: 20px;
 }
@@ -149,6 +149,8 @@ a {
 
 .poster-div {
 	display: inline-block;
+	vertical-align: middle;
+	line-height: 30px;
 	width: 50%;
 	height:30px;
 
