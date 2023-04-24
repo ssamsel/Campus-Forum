@@ -42,6 +42,14 @@ export async function getThread(post) {
     return data;
 }
 
+export async function getComments(post) {
+    const response = await fetch(`http://${SERVER_IP_PORT_TUPLE}/server/getComments?post_id=${post}`,
+        { method: 'GET' }
+    );
+    const data = await response.json();
+    return data;
+}
+
 export async function deleteThread(username, hash, post) {
     const message = JSON.stringify({ user: username, pwHash: hash, postData: post });
     const response = await fetch(`http://${SERVER_IP_PORT_TUPLE}/server/deleteThread?data=${message}`, 

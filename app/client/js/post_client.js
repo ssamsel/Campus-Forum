@@ -1,9 +1,13 @@
 import * as crud from './crud.js';
 
+const urlParams = new URLSearchParams(window.location.search);
+const postId = urlParams.get('post_id');
+
 const title = document.getElementById("title-div");
 const author = document.getElementById("author-div");
 const post = document.getElementById("post-body");
 
+const comments = document.getElementById('comments-div');
 const commentButton = document.getElementById('post_comment');
 const newPostTextBox = document.getElementById('textBox');
 
@@ -25,8 +29,6 @@ replyButtons.forEach(button => {
 });
 
 async function loadPost() {
-  const urlParams = new URLSearchParams(window.location.search);
-  const postId = urlParams.get('post_id');
   const postData = await crud.getThread(postId);
 
   // let mockTitle = 'How do I print at the library?';
@@ -44,4 +46,39 @@ async function loadPost() {
   post.innerText = postData.post_body;
 }
 
+function generateCommentHTML(comment) {
+  let commentHTML = `<div>
+    <p class="medium-text">${comment.author}</p>
+    <p class="small-text">${comment.time}</p>
+    <div class="vl"></div>
+    <p class="comment-text">${comment.comment_body}</p>
+    <br>
+    <button class="like" id="like-button">
+      <img class="comment" src="img/heart.png" /> 
+      <span class="like-count">${comment.likes}</span>
+      Like
+    </button>
+    <div style="display: inline-block; width: 50px"></div>
+    <button class="reply" id="reply-button">
+      <img class="comment" src="img/comment.png" /> Reply
+    </button>
+    <br><br>`
+  
+  if (comment.children.length > 0) {
+    commentHTML += `<div class="ml-5">`
+    for (let i = 0; i < comment.children.length; i++) {
+      commentHTML += generateCommentHTML(comment.children[i]);
+    }
+    commentHTML += `</div>`;
+  }
+  commentHTML += `</div>`;
+  return commentHTML;
+}
+
+async function loadComments() {
+  const commentData = await crud.getComments(postId);
+  comments.innerHTML = commentData.comments.reduce((acc, e) => acc + generateCommentHTML(e), ''); 
+}
+
 await loadPost();
+await loadComments();
