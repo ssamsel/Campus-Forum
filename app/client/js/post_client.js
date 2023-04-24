@@ -30,6 +30,12 @@ replyButtons.forEach(button => {
 
 async function loadPost() {
   const postData = await crud.getThread(postId);
+  
+  if ('error' in postData) {
+    title.innerText = 'Error';
+    post.innerText = postData.error;
+    return -1;
+  }
 
   // let mockTitle = 'How do I print at the library?';
   // let mockAuthor = 'Anish Gupta';
@@ -44,6 +50,7 @@ async function loadPost() {
   title.innerText = postData.title;
   author.innerText = postData.author;
   post.innerText = postData.post_body;
+  return 0;
 }
 
 function generateCommentHTML(comment) {
@@ -80,5 +87,6 @@ async function loadComments() {
   comments.innerHTML = commentData.comments.reduce((acc, e) => acc + generateCommentHTML(e), ''); 
 }
 
-await loadPost();
-await loadComments();
+if (await loadPost() === 0) {
+  await loadComments();
+}

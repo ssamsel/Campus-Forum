@@ -13,7 +13,6 @@ const filePathPrefix = process.argv[1].replace(/server\.js$/, "");
 const accounts_db = new PouchDB(filePathPrefix + "/db/accounts");
 const threads_db = new PouchDB(filePathPrefix + '/db/threads');
 
-
 const accountsLoggedIn = {};
 const time = new Timestamp();
 
@@ -132,7 +131,11 @@ async function createThread(response, options) {
 }
 
 async function getThread(response, options) {
-    // TODO: endpoint to return post info including: title, author, post body.
+    if (!await threadExists(options.post_id)) {
+        await sendError(response, 404, "Post not found.");
+        return;
+    }
+
     const post = await threads_db.get(options.post_id);
     response.writeHead(200, headerFields);
     response.write(JSON.stringify({ title: post._id, author: post.author, post_body: post.body }))
