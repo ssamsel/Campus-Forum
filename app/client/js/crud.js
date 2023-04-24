@@ -43,8 +43,8 @@ export async function deleteThread(username, hash, post) {
     return data;
 }
 
-export async function updateLikeCount(postId, count) {
-    const response = await fetch(`http://${SERVER_IP_PORT_TUPLE}/server/updateLikeCount?postId=${postId}&count=${count}`,
+export async function updateLikeCount(count) {
+    const response = await fetch(`http://${SERVER_IP_PORT_TUPLE}/server/updateLikeCount?count=${count}`,
       { method: 'POST' }
     );
     const data = await response.json();
