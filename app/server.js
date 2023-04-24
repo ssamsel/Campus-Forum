@@ -2,6 +2,7 @@ import * as http from 'http';
 import * as url from 'url';
 import PouchDB from 'pouchdb';
 import { readFile } from 'fs/promises';
+import { Timestamp } from './time.js';
 
 const DEFAULT_PORT = 3000;
 
@@ -10,11 +11,11 @@ const DEFAULT_PORT = 3000;
 const filePathPrefix = process.argv[1].replace(/server\.js$/, "");
 
 const accounts_db = new PouchDB(filePathPrefix + "/db/accounts");
-const posts_db = new PouchDB(filePathPrefix + '/db/posts');
 const threads_db = new PouchDB(filePathPrefix + '/db/threads');
 
 
 const accountsLoggedIn = {};
+const time = new Timestamp();
 
 // This is to allow for accessing the server from the same IP origin
 // Will probably be modified once this is properly deployed
@@ -78,6 +79,11 @@ async function logout(response, options) {
     response.end();
 }
 
+async function threadExists(title) {
+    const docs = await threads_db.allDocs({ include_docs: true });
+    return docs.rows.some(x => x.id === title);
+}
+
 async function createThread(response, options) {
     const data = JSON.parse(options.data);
     const username = data.user;
@@ -112,6 +118,13 @@ async function createThread(response, options) {
         return;
     }
 
+    if (await threadExists(post.title)) {
+        await sendError(response, 400, `Title "${post.title}" taken`);
+        return;
+    }
+
+
+    threads_db.put({ _id: post.title, author: username, body: post.text, time: time.now(), images: 0, posts: 1});
 
     response.writeHead(200, headerFields);
     response.write(JSON.stringify({ success: "Thread Created" }))
@@ -133,7 +146,24 @@ async function deleteThread(response, options){
     const pwHash = data.pwHash;
     const post = data.postData;
 
-    posts_db.remove();
+}
+
+async function dumpThreads(response, options){
+    const allDocs = await threads_db.allDocs({include_docs: true});
+    const threads = [];
+    allDocs.rows.forEach(x => threads.push(x.doc));
+    response.writeHead(200, headerFields);
+    response.write(JSON.stringify(threads.map(x => {
+        return {
+            author: x.author,
+            title: x._id,
+            body: x.body,
+            time: time.compareToNow(x.time),
+            images: x.images,
+            posts: x.posts,
+        };
+    })));
+    response.end();
 }
 
 async function server(request, response) {
@@ -175,6 +205,10 @@ async function server(request, response) {
 
     if (method === 'DELETE' && pathname.startsWith('/server/deleteThread')) {
         deleteThread(response, options);
+        return;
+    }
+    if (method === 'GET' && pathname.startsWith('/server/dumpThreads')){
+        dumpThreads(response, options);
         return;
     }
 
