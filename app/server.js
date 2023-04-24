@@ -125,6 +125,39 @@ async function getThread(response, options) {
     response.end();
 }
 
+async function getComments(response, options) {
+    // TODO: endpoint to get comment info from a post.
+    // Currently comments are expected to be structured like the following:
+    let mockComments = [
+        {
+            author: "Anish Gupta",
+            time: "40 minutes ago",
+            comment_body: "Go on umass uprint! You can scan your id at the printer and print there",
+            likes: 5,
+            children: [
+                {
+                author: "Nithin Joshy",
+                time: "20 minutes ago",
+                comment_body: "Thanks!! :)",
+                likes: 2,
+                children: []
+                }
+            ]
+        },
+        {
+            author: "Nithin Joshy",
+            time: "50 minutes ago",
+            comment_body: "pleasse help I also rly need help.",
+            likes: 0,
+            children: []
+        }
+    ];
+    
+    response.writeHead(200, headerFields);
+    response.write(JSON.stringify({ comments: mockComments }))
+    response.end();
+}
+
 async function deleteThread(response, options){
     // TODO: Check if post exists first
     // Check if the user who created the post is the same user logged in.
@@ -170,6 +203,11 @@ async function server(request, response) {
 
     if (method === 'GET' && pathname.startsWith('/server/getThread')) {
         getThread(response, options);
+        return;
+    }
+
+    if (method === 'GET' && pathname.startsWith('/server/getComments')) {
+        getComments(response, options);
         return;
     }
 

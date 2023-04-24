@@ -1,5 +1,8 @@
 import * as crud from './crud.js';
 
+const urlParams = new URLSearchParams(window.location.search);
+const postId = urlParams.get('post_id');
+
 const title = document.getElementById("title-div");
 const author = document.getElementById("author-div");
 const post = document.getElementById("post-body");
@@ -26,8 +29,6 @@ replyButtons.forEach(button => {
 });
 
 async function loadPost() {
-  const urlParams = new URLSearchParams(window.location.search);
-  const postId = urlParams.get('post_id');
   const postData = await crud.getThread(postId);
 
   // let mockTitle = 'How do I print at the library?';
@@ -75,32 +76,8 @@ function generateCommentHTML(comment) {
 }
 
 async function loadComments() {
-  let mockComments = [
-    {
-      author: "Anish Gupta",
-      time: "40 minutes ago",
-      comment_body: "Go on umass uprint! You can scan your id at the printer and print there",
-      likes: 5,
-      children: [
-        {
-          author: "Nithin Joshy",
-          time: "20 minutes ago",
-          comment_body: "Thanks!! :)",
-          likes: 2,
-          children: []
-        }
-      ]
-    },
-    {
-      author: "Nithin Joshy",
-      time: "50 minutes ago",
-      comment_body: "pleasse help I also rly need help.",
-      likes: 0,
-      children: []
-    }
-  ];
-
-  comments.innerHTML = mockComments.reduce((acc, e) => acc + generateCommentHTML(e), ''); 
+  const commentData = await crud.getComments(postId);
+  comments.innerHTML = commentData.comments.reduce((acc, e) => acc + generateCommentHTML(e), ''); 
 }
 
 await loadPost();
