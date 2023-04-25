@@ -12,6 +12,7 @@ const filePathPrefix = process.argv[1].replace(/server\.js$/, "");
 
 const accounts_db = new PouchDB(filePathPrefix + "/db/accounts");
 const threads_db = new PouchDB(filePathPrefix + '/db/threads');
+const comments_db = new PouchDB(filePathPrefix + '/db/comments');
 
 const accountsLoggedIn = {};
 const time = new Timestamp();
@@ -27,7 +28,6 @@ async function sendError(response, code, message) {
     response.write(JSON.stringify({ error: message }));
     response.end();
 }
-
 
 async function accountExists(username) {
     const docs = await accounts_db.allDocs({ include_docs: true });
@@ -123,11 +123,33 @@ async function createThread(response, options) {
     }
 
 
-    threads_db.put({ _id: post.title, author: username, body: post.text, time: time.now(), images: 0, posts: 1});
+    threads_db.put({ _id: post.title, author: username, body: post.text, time: time.now(), images: 0, posts: 1, comments: []});
 
     response.writeHead(200, headerFields);
     response.write(JSON.stringify({ success: "Thread Created" }))
     response.end();
+}
+
+async function createComment(response, options) {
+    if (!await threadExists(options.post_id)) {
+        await sendError(response, 404, "Post not found.");
+        return;
+    }
+
+    let commentId = post.posts;
+    if (options.first_level === "true") {
+        threads_db.get(options.post_id).then(function (doc) {
+            doc.comments.push(commentId);
+            threads_db.put(doc);
+        });
+    } else {
+        comments_db.get(options.parent_comment).then(function (doc) {
+            doc.children.push(commentId);
+            comments_db.put(doc);
+        });
+    }
+
+    comments_db.put({ _id: commentId, author: options.username, comment_body: options.text, time: time.now(), likes: 0, children: []});
 }
 
 async function getThread(response, options) {

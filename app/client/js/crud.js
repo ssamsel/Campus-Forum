@@ -45,7 +45,7 @@ export async function getThread(post) {
 export async function getComments(post) {
     const response = await fetch(`http://${SERVER_IP_PORT_TUPLE}/server/getComments?post_id=${post}`,
         { method: 'GET' }
-    )
+    );
     const data = await response.json();
     return data;
 }
