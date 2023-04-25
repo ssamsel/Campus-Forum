@@ -168,7 +168,7 @@ async function createComment(response, options) {
             await comments_db.put(doc);
         });
     }
-
+    console.log(options.text);
     await comments_db.put({ _id: commentId, author: options.username, comment_body: options.text, time: time.now(), likes: 0, children: []});
 
     response.writeHead(200, headerFields);
@@ -190,7 +190,6 @@ async function getThread(response, options) {
 
 async function loadCommentsFromPost(post_id) {
     const post = await threads_db.get(post_id);
-    console.log(post);
     let comments = [];
 
     for (let i = 0; i < post.comments.length; i++) {

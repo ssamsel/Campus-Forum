@@ -44,6 +44,7 @@ export async function getThread(post) {
 }
 
 export async function createComment(post_parent, post_id, parent_id, username, pwHash, text) {
+    console.log(`http://${SERVER_IP_PORT_TUPLE}/server/createComment?post_id=${post_id}&post_parent=${post_parent}&parent_id=${parent_id}&username=${username}&pwHash=${pwHash}&text=${text}`);
     const response = await fetch(`http://${SERVER_IP_PORT_TUPLE}/server/createComment?post_id=${post_id}&post_parent=${post_parent}&parent_id=${parent_id}&username=${username}&pwHash=${pwHash}&text=${text}`,
         { method: 'POST' }
     );
