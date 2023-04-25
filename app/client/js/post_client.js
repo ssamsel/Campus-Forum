@@ -35,6 +35,7 @@ commentButton.addEventListener('click', async function (event) {
   let text = newPostTextBox.innerText;
   const responseData = await crud.createComment("true", postId, postId, username, pwHash, text);
   console.log(responseData);
+  await loadComments();
 });
 
 async function loadPost() {
