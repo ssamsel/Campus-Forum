@@ -20,6 +20,7 @@ likeButtons.forEach(button => {
     const likeCount = button.querySelector('.like-count');
     let count = parseInt(likeCount.textContent);
     count++;
+    console.log(count);
     likeCount.textContent = count;
     const response = await crud.updateLikeCount(count);
   });
