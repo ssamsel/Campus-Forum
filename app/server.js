@@ -83,27 +83,36 @@ async function threadExists(title) {
     return docs.rows.some(x => x.id === title);
 }
 
+async function loginValid(username, pwHash) {
+    if (username === null || pwHash === null) {
+        return "You must be logged in for this operation.";
+    }
+
+    if (!await accountExists(username) || !await checkPwHash(username, pwHash)) {
+        return "Bad Request";
+    }
+
+    if (accountsLoggedIn[username] !== true) {
+        return "You must be logged in to create a thread";
+    }
+
+    return true;
+}
+
 async function createThread(response, options) {
     const data = JSON.parse(options.data);
     const username = data.user;
     const pwHash = data.pwHash;
     const post = data.postData;
 
-    if (username === null || pwHash === null) {
-        await sendError(response, 400, "You must be logged in to create a thread");
-    }
-    if (post === undefined) {
-        await sendError(response, 400, "Missing post in request");
-    }
-
-    if (!await accountExists(username) || !await checkPwHash(username, pwHash)) {
-        // This error is vague on purpose as it would only be triggered when somebody is trying to exploit
-        await sendError(response, 400, "Bad Request");
+    let checkLogin = loginValid(username, pwHash);
+    if (checkLogin !== true) {
+        await sendError(response, 400, checkLogin);
         return;
     }
 
-    if (accountsLoggedIn[username] !== true) {
-        await sendError(response, 400, "You must be logged in to create a thread");
+    if (post === undefined) {
+        await sendError(response, 400, "Missing post in request");
         return;
     }
 
@@ -133,6 +142,12 @@ async function createThread(response, options) {
 async function createComment(response, options) {
     if (!await threadExists(options.post_id)) {
         await sendError(response, 404, "Post not found.");
+        return;
+    }
+
+    let checkLogin = loginValid(options.username, options.pwHash);
+    if (checkLogin !== true) {
+        await sendError(response, 400, checkLogin);
         return;
     }
 
