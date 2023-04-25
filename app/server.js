@@ -144,6 +144,7 @@ async function createComment(response, options) {
         return;
     }
 
+    // TODO: authentication doesn't carry over between pages so this won't work.
     // let checkLogin = loginValid(options.username, options.pwHash);
     // if (checkLogin !== true) {
     //     await sendError(response, 400, checkLogin);
