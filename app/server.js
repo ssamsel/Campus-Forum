@@ -136,20 +136,25 @@ async function createComment(response, options) {
         return;
     }
 
+    const post = threads_db.get(options.post_id);
     let commentId = post.posts;
-    if (options.first_level === "true") {
-        threads_db.get(options.post_id).then(function (doc) {
+    if (options.post_parent === "true") {
+        threads_db.get(options.parent_id).then(function (doc) {
             doc.comments.push(commentId);
             threads_db.put(doc);
         });
     } else {
-        comments_db.get(options.parent_comment).then(function (doc) {
+        comments_db.get(options.parent_id).then(function (doc) {
             doc.children.push(commentId);
             comments_db.put(doc);
         });
     }
 
     comments_db.put({ _id: commentId, author: options.username, comment_body: options.text, time: time.now(), likes: 0, children: []});
+
+    response.writeHead(200, headerFields);
+    response.write(JSON.stringify({ success: "Comment Created" }))
+    response.end();
 }
 
 async function getThread(response, options) {
@@ -248,6 +253,11 @@ async function server(request, response) {
 
     if (method === 'POST' && pathname.startsWith('/server/createThread')) {
         createThread(response, options);
+        return;
+    }
+
+    if (method === 'POST' && pathname.startsWith('/server/createComment')) {
+        createComment(response, options);
         return;
     }
 

@@ -42,6 +42,14 @@ export async function getThread(post) {
     return data;
 }
 
+export async function createComment(post_parent, post_id, parent_id, username, text) {
+    const response = await fetch(`http://${SERVER_IP_PORT_TUPLE}/server/createComment?post_id=${post_id}&post_parent=${post_parent}&parent_id=${parent_id}&username=${username}&text=${text}`,
+        { method: 'POST' }
+    );
+    const data = await response.json();
+    return data;
+}
+
 export async function getComments(post) {
     const response = await fetch(`http://${SERVER_IP_PORT_TUPLE}/server/getComments?post_id=${post}`,
         { method: 'GET' }
