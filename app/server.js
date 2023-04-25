@@ -3,7 +3,6 @@ import * as url from "url";
 import PouchDB from "pouchdb";
 import formidable from "formidable"; // For handling image uploads
 import { readFile } from "fs/promises";
-import { existsSync } from "fs";
 import * as timeUtils from "./time.js";
 
 const DEFAULT_PORT = 3000;
@@ -16,7 +15,7 @@ const accounts_db = new PouchDB(filePathPrefix + "/db/accounts");
 const threads_db = new PouchDB(filePathPrefix + "/db/threads");
 const comments_db = new PouchDB(filePathPrefix + "/db/comments");
 
-const accountsLoggedIn = { Team5: true };
+const accountsLoggedIn = {};
 
 // This is to allow for accessing the server from the same IP origin
 // Will probably be modified once this is properly deployed
@@ -110,7 +109,7 @@ async function loginValid(username, pwHash) {
 }
 
 function handleImageUpload(request) {
-  const filename = Date.now().toString() + ".png";
+  const filename = Date.now().toString();
   const form = new formidable.IncomingForm({
     maxFields: 1,
     uploadDir: filePathPrefix + "/img/",
@@ -393,8 +392,8 @@ async function server(request, response) {
         type = "text/javascript";
       } else if (pathname.endsWith(".html")) {
         type = "text/html";
-      } else if (pathname.endsWith(".png")) {
-        type = "image/png";
+      } else if (pathname.search(/(\.jpg)|(\.png)|(\.jpeg)$/) !== -1) {
+        type = "image/jpeg";
       } else {
         type = "text/plain";
       }

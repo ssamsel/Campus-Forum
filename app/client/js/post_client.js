@@ -49,7 +49,7 @@ async function loadPost() {
   author.innerText = postData.author;
   post.innerText = postData.post_body;
   if (postData.imagePath !== undefined){
-    image.innerHTML = `<img src="${postData.imagePath}" />`
+    image.innerHTML = `<img class="img_upload" src="${postData.imagePath}" />`
   }
   return 0;
 }
