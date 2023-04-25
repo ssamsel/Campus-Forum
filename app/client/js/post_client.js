@@ -17,9 +17,11 @@ const pwHash = window.sessionStorage.getItem("pwHash");
 
 commentButton.addEventListener('click', async function (event) {
   let text = newPostTextBox.value;
-  console.log(text);
   const responseData = await crud.createComment("true", postId, postId, username, pwHash, text);
   console.log(responseData);
+  if (responseData.error !== undefined){
+    alert(responseData.error);
+  }
   await loadComments();
 });
 
@@ -79,7 +81,6 @@ function generateCommentHTML(comment) {
 
 async function loadComments() {
   const commentData = await crud.getComments(postId);
-  console.log(commentData);
   comments.innerHTML = commentData.comments.reduce((acc, e) => acc + generateCommentHTML(e), ''); 
 }
 
@@ -93,7 +94,6 @@ likeButtons.forEach(button => {
     const likeCount = button.querySelector('.like-count');
     let count = parseInt(likeCount.textContent);
     count++;
-    console.log(count);
     likeCount.textContent = count;
     const response = await crud.updateLikeCount(count);
   });
