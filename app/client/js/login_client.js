@@ -64,7 +64,7 @@ createAccountButton.addEventListener('click', async (e) => {
     const password = passwordBox.value;
 
     if (invalidPw(password)) {
-        outputDiv.innerHTML = "<h1>Password does not meet criteria, try again</h1>";
+        outputDiv.innerHTML = "<h1>Password does not meet criteria, try again. (Must be greater than 5 characters, contain at least one lowercase letter, contain at least one uppercase letter, contain at least one number, and contain at least one special character) </h1>";
         return;
     }
     if (invalidUsername(username)) {

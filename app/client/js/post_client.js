@@ -99,7 +99,7 @@ likeButtons.forEach(button => {
   });
 });
 
-const replyButtons = document.querySelectorAll('#reply');
+const replyButtons = document.querySelectorAll('#reply-BUTTON');
 replyButtons.forEach(button => {
   button.addEventListener('click', () => {
   });
