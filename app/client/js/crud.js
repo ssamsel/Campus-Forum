@@ -31,6 +31,7 @@ export async function createThread(username, hash, post) {
         { method: 'POST' }
     );
     const data = await response.json();
+    console.log(data);
     return data;
 }
 
@@ -55,6 +56,7 @@ export async function getComments(post) {
         { method: 'GET' }
     );
     const data = await response.json();
+    console.log(data);
     return data;
 }
 

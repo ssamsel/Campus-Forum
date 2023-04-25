@@ -94,6 +94,7 @@ function generateCommentHTML(comment) {
 
 async function loadComments() {
   const commentData = await crud.getComments(postId);
+  console.log(commentData);
   comments.innerHTML = commentData.comments.reduce((acc, e) => acc + generateCommentHTML(e), ''); 
 }
 

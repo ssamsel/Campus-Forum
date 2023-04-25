@@ -105,7 +105,8 @@ async function createThread(response, options) {
     const pwHash = data.pwHash;
     const post = data.postData;
 
-    let checkLogin = loginValid(username, pwHash);
+    let checkLogin = await loginValid(username, pwHash);
+    console.log(checkLogin);
     if (checkLogin !== true) {
         await sendError(response, 400, checkLogin);
         return;
@@ -131,7 +132,6 @@ async function createThread(response, options) {
         return;
     }
 
-
     threads_db.put({ _id: post.title, author: username, body: post.text, time: time.now(), images: 0, posts: 1, comments: []});
 
     response.writeHead(200, headerFields);
@@ -145,27 +145,31 @@ async function createComment(response, options) {
         return;
     }
 
-    let checkLogin = loginValid(options.username, options.pwHash);
-    if (checkLogin !== true) {
-        await sendError(response, 400, checkLogin);
-        return;
-    }
+    // let checkLogin = loginValid(options.username, options.pwHash);
+    // if (checkLogin !== true) {
+    //     await sendError(response, 400, checkLogin);
+    //     return;
+    // }
 
-    const post = threads_db.get(options.post_id);
-    let commentId = post.posts;
+    let post = await threads_db.get(options.post_id);
+    let commentId = post.posts.toString();
+    post.posts++;
+    await threads_db.put(post);
+    
     if (options.post_parent === "true") {
-        threads_db.get(options.parent_id).then(function (doc) {
+        threads_db.get(options.parent_id).then(async function (doc) {
+            console.log(doc);
             doc.comments.push(commentId);
-            threads_db.put(doc);
+            await threads_db.put(doc);
         });
     } else {
-        comments_db.get(options.parent_id).then(function (doc) {
+        comments_db.get(options.parent_id).then(async function (doc) {
             doc.children.push(commentId);
-            comments_db.put(doc);
+            await comments_db.put(doc);
         });
     }
 
-    comments_db.put({ _id: commentId, author: options.username, comment_body: options.text, time: time.now(), likes: 0, children: []});
+    await comments_db.put({ _id: commentId, author: options.username, comment_body: options.text, time: time.now(), likes: 0, children: []});
 
     response.writeHead(200, headerFields);
     response.write(JSON.stringify({ success: "Comment Created" }))
@@ -185,12 +189,13 @@ async function getThread(response, options) {
 }
 
 async function loadCommentsFromPost(post_id) {
-    const post = await threads_db.get(options.post_id);
+    const post = await threads_db.get(post_id);
+    console.log(post);
     let comments = [];
 
     for (let i = 0; i < post.comments.length; i++) {
         let comment = await comments_db.get(post.comments[i]);
-        comment.children = comment.children.map(id => loadCommentsFromPost(id));
+        comment.children = comment.children.map(await loadCommentsFromPost);
         comments.push(comment);
     }
 
@@ -203,7 +208,7 @@ async function getComments(response, options) {
         return;
     }
 
-    const comments = loadCommentsFromPost(options.post_id);
+    const comments = await loadCommentsFromPost(options.post_id);
 
     response.writeHead(200, headerFields);
     response.write(JSON.stringify({ comments: comments }));
