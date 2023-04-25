@@ -1,7 +1,9 @@
 import * as http from "http";
 import * as url from "url";
 import PouchDB from "pouchdb";
+import formidable from "formidable"; // For handling image uploads
 import { readFile } from "fs/promises";
+import { existsSync } from "fs";
 import * as timeUtils from "./time.js";
 
 const DEFAULT_PORT = 3000;
@@ -14,7 +16,7 @@ const accounts_db = new PouchDB(filePathPrefix + "/db/accounts");
 const threads_db = new PouchDB(filePathPrefix + "/db/threads");
 const comments_db = new PouchDB(filePathPrefix + "/db/comments");
 
-const accountsLoggedIn = {};
+const accountsLoggedIn = { Juice999: true };
 
 // This is to allow for accessing the server from the same IP origin
 // Will probably be modified once this is properly deployed
@@ -107,11 +109,25 @@ async function loginValid(username, pwHash) {
   return true;
 }
 
-async function createThread(response, options) {
+async function handleImageUpload(request, name) {
+  const form = new formidable.IncomingForm({
+    maxFields: 1,
+    uploadDir: filePathPrefix + "/img/",
+    filename: () => name + ".png",
+  });
+  try {
+    form.parse(request);
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+async function createThread(request, response, options) {
   const data = JSON.parse(options.data);
   const username = data.user;
   const pwHash = data.pwHash;
   const post = data.postData;
+  const hasImage = data.hasImage;
 
   const checkLogin = await loginValid(username, pwHash);
   if (checkLogin !== true) {
@@ -121,6 +137,11 @@ async function createThread(response, options) {
 
   if (post === undefined) {
     await sendError(response, 400, "Missing post in request");
+    return;
+  }
+
+  if (hasImage === undefined) {
+    await sendError(response, 400, "Missing hasImage field");
     return;
   }
 
@@ -139,12 +160,17 @@ async function createThread(response, options) {
     return;
   }
 
+  if (hasImage) {
+    await handleImageUpload(request, post.title);
+  }
+
   threads_db.put({
     _id: post.title,
     author: username,
     body: post.text,
     time: Date.now(),
-    images: 0,
+    images: hasImage ? 1 : 0,
+    imagePath: hasImage ? filePathPrefix + post.title + ".png" : undefined,
     posts: 1,
     comments: [],
   });
@@ -279,6 +305,25 @@ async function dumpThreads(response, options) {
   response.end();
 }
 
+async function updateLikeCount(response, options) {
+
+  // const checkLogin = await loginValid(options.username, options.pwHash);
+
+  // if (checkLogin !== true) {
+  //   await sendError(response, 400, checkLogin);
+  //   return;
+  // }
+  comments_db.get(options.comment).then(async function (doc) {
+    doc.likes++;
+    await comments_db.put(doc);
+  });
+
+  response.writeHead(200, headerFields);
+  response.write(JSON.stringify({ success: "Comment Like Count Updated" }));
+  response.end();
+}
+
+
 async function server(request, response) {
   const parsedURL = url.parse(request.url, true);
   const options = parsedURL.query;
@@ -307,7 +352,7 @@ async function server(request, response) {
   }
 
   if (method === "POST" && pathname.startsWith("/server/createThread")) {
-    createThread(response, options);
+    createThread(request, response, options);
     return;
   }
 
@@ -332,6 +377,10 @@ async function server(request, response) {
   }
   if (method === "GET" && pathname.startsWith("/server/dumpThreads")) {
     dumpThreads(response, options);
+    return;
+  }
+  if (method === "POST" && pathname.startsWith("/server/updateLikeCount")) {
+    updateLikeCount(response, options);
     return;
   }
 

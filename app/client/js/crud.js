@@ -25,10 +25,10 @@ export async function logOut(username, hash) {
     );
 }
 
-export async function createThread(username, hash, post) {
-    const message = JSON.stringify({ user: username, pwHash: hash, postData: post });
+export async function createThread(username, hash, post, image, hasImage) {
+    const message = JSON.stringify({ user: username, pwHash: hash, postData: post, hasImage: hasImage});
     const response = await fetch(`http://${SERVER_IP_PORT_TUPLE}/server/createThread?data=${message}`,
-        { method: 'POST' }
+        { method: 'POST', body: image }
     );
     const data = await response.json();
     return data;
@@ -75,11 +75,10 @@ export async function dumpThreads(){
     return data;
 }
 
-export async function updateLikeCount(count) {
-    const response = await fetch(`http://${SERVER_IP_PORT_TUPLE}/server/updateLikeCount?count=${count}`,
+export async function updateLikeCount(comment) {
+    const response = await fetch(`http://${SERVER_IP_PORT_TUPLE}/server/updateLikeCount?comment=${comment}`,
       { method: 'POST' }
     );
     const data = await response.json();
     return data;
 }
-  

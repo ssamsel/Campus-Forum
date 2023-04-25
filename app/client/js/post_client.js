@@ -41,7 +41,7 @@ async function loadPost() {
 }
 
 function generateCommentHTML(comment) {
-  let commentHTML = `<div>
+  let commentHTML = `<div id = comment-${comment._id}>
     <p class="medium-text">${comment.author}</p>
     <p class="small-text">${comment.time}</p>
     <div class="vl"></div>
@@ -88,8 +88,8 @@ function setCommentEventHandlers () {
       let count = parseInt(likeCount.textContent);
       count++;
       likeCount.textContent = count;
-      const response = await crud.updateLikeCount(count);
-    });
+      const response = await crud.updateLikeCount(button.parentElement.id.split('-')[1]);
+      console.log(response);
   });
 
   const replyButtons = document.querySelectorAll('.reply');
