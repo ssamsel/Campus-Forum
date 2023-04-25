@@ -2,7 +2,7 @@ import * as http from 'http';
 import * as url from 'url';
 import PouchDB from 'pouchdb';
 import { readFile } from 'fs/promises';
-import { Timestamp } from './time.js';
+import * as timeUtils from './time.js';
 
 const DEFAULT_PORT = 3000;
 
@@ -15,7 +15,6 @@ const threads_db = new PouchDB(filePathPrefix + '/db/threads');
 
 
 const accountsLoggedIn = {};
-const time = new Timestamp();
 
 // This is to allow for accessing the server from the same IP origin
 // Will probably be modified once this is properly deployed
@@ -123,8 +122,7 @@ async function createThread(response, options) {
         return;
     }
 
-
-    threads_db.put({ _id: post.title, author: username, body: post.text, time: time.now(), images: 0, posts: 1});
+    threads_db.put({ _id: post.title, author: username, body: post.text, time: Date.now(), images: 0, posts: 1 });
 
     response.writeHead(200, headerFields);
     response.write(JSON.stringify({ success: "Thread Created" }))
@@ -150,11 +148,11 @@ async function getComments(response, options) {
             likes: 5,
             children: [
                 {
-                author: "Nithin Joshy",
-                time: "20 minutes ago",
-                comment_body: "Thanks!! :)",
-                likes: 2,
-                children: []
+                    author: "Nithin Joshy",
+                    time: "20 minutes ago",
+                    comment_body: "Thanks!! :)",
+                    likes: 2,
+                    children: []
                 }
             ]
         },
@@ -166,13 +164,13 @@ async function getComments(response, options) {
             children: []
         }
     ];
-    
+
     response.writeHead(200, headerFields);
     response.write(JSON.stringify({ comments: mockComments }))
     response.end();
 }
 
-async function deleteThread(response, options){
+async function deleteThread(response, options) {
     // TODO: Check if post exists first
     // Check if the user who created the post is the same user logged in.
     const data = JSON.parse(options.data);
@@ -182,18 +180,18 @@ async function deleteThread(response, options){
 
 }
 
-async function dumpThreads(response, options){
-    const allDocs = await threads_db.allDocs({include_docs: true});
+async function dumpThreads(response, options) {
+    const allDocs = await threads_db.allDocs({ include_docs: true });
     const threads = [];
     allDocs.rows.forEach(x => threads.push(x.doc));
-    threads.sort(time.compare);
+    threads.sort(timeUtils.compare);
     response.writeHead(200, headerFields);
     response.write(JSON.stringify(threads.map(x => {
         return {
             author: x.author,
             title: x._id,
             body: x.body,
-            time: time.convertToRecencyString(x.time),
+            time: timeUtils.convertToRecencyString(x.time),
             images: x.images,
             posts: x.posts,
         };
@@ -247,7 +245,7 @@ async function server(request, response) {
         deleteThread(response, options);
         return;
     }
-    if (method === 'GET' && pathname.startsWith('/server/dumpThreads')){
+    if (method === 'GET' && pathname.startsWith('/server/dumpThreads')) {
         dumpThreads(response, options);
         return;
     }
