@@ -105,7 +105,6 @@ async function createThread(response, options) {
     const post = data.postData;
 
     let checkLogin = await loginValid(username, pwHash);
-    console.log(checkLogin);
     if (checkLogin !== true) {
         await sendError(response, 400, checkLogin);
         return;
@@ -158,7 +157,6 @@ async function createComment(response, options) {
     
     if (options.post_parent === "true") {
         threads_db.get(options.parent_id).then(async function (doc) {
-            console.log(doc);
             doc.comments.push(commentId);
             await threads_db.put(doc);
         });
@@ -168,7 +166,6 @@ async function createComment(response, options) {
             await comments_db.put(doc);
         });
     }
-    console.log(options.text);
     await comments_db.put({ _id: commentId, author: options.username, comment_body: options.text, time: Date.now(), likes: 0, children: []});
 
     response.writeHead(200, headerFields);
@@ -207,8 +204,11 @@ async function getComments(response, options) {
         return;
     }
 
-    const comments = await loadCommentsFromPost(options.post_id);
-
+    const raw_comments = await loadCommentsFromPost(options.post_id);
+    const comments = raw_comments.map(x => {
+        x.time = timeUtils.convertToRecencyString(x.time);
+        return x;
+    });
     response.writeHead(200, headerFields);
     response.write(JSON.stringify({ comments: comments }));
     response.end();
@@ -321,7 +321,7 @@ async function server(request, response) {
                 type = 'text/plain';
             }
 
-            const data = await readFile(filePathPrefix + pathname, 'utf8');
+            const data = await readFile(filePathPrefix + pathname);
             response.writeHead(200, { 'Content-Type': type });
             response.write(data);
         }
