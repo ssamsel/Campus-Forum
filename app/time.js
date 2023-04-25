@@ -1,52 +1,32 @@
-export class Timestamp {
-    constructor() {
-        this.date = new Date();
+export function compare(a, b) {
+    return b.time - a.time;
+}
+
+export function convertToRecencyString(time) {
+    let diff = Math.floor((Date.now() - time) / (1000 * 60));
+
+    if (diff === 0) {
+        return "Just now";
     }
-    // [year, month, dayofmonth, hour, minute]
-    now() {
-        return [
-            this.date.getFullYear(),
-            this.date.getMonth(),
-            this.date.getDate(),
-            this.date.getHours(),
-            this.date.getMinutes(),
-        ];
+    if (diff < 60) {
+        return message("minute", diff);
     }
-
-    convertToRecencyString(timestamp) {
-        const nowTS = this.now();
-        const diff = [];
-        nowTS.forEach((val, idx) => {
-            diff.push(Math.abs(timestamp[idx] - val));
-        });
-
-        if (diff[0] > 0){
-           return diff[0].toString() + " year" + this._plural(diff[0]) + "ago";
-        }
-        if (diff[1] > 0){
-           return diff[1].toString() + " month" + this._plural(diff[1]) + "ago";
-        }
-        if (diff[2] > 0){
-           return diff[2].toString() + " day" + this._plural(diff[2]) + "ago";
-        }
-        if (diff[3] > 0){
-           return diff[3].toString() + " hour" + this._plural(diff[3]) + "ago";
-        }
-        return diff[4].toString() + " minute" + this._plural(diff[3]) + "ago";
+    diff /= 60;
+    if (diff < 24) {
+        return message("hour", diff);
     }
-
-    // compare function for array sorting
-    // a and b are both forum entries
-    compare(a, b){
-       function reducer(acc, val, idx){
-        return acc + val * Math.pow(100, 5-idx); 
-       }
-
-       return b.time.reduce(reducer, 0) - a.time.reduce(reducer, 0);
+    diff /= 24;
+    if (diff < 7) {
+        return message("day", diff);
     }
-
-    _plural(num){
-        return num != 1 ? "s " : " ";
+    diff /= 7;
+    if (diff < 5) {
+        return message("week", diff);
     }
+    diff /= 12;
+    return message("year", diff);
+}
 
+function message(unit, num) {
+    return num.toString() + " " + unit + (num != 1 ? "s" : "") + " ago";
 }
