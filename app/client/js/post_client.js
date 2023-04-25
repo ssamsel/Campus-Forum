@@ -94,6 +94,7 @@ function setCommentEventHandlers () {
       likeCount.textContent = count;
       const response = await crud.updateLikeCount(button.parentElement.id.split('-')[1]);
       console.log(response);
+    });
   });
 
   const replyButtons = document.querySelectorAll('.reply');
