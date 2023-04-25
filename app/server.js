@@ -164,36 +164,29 @@ async function getThread(response, options) {
     response.end();
 }
 
+async function loadCommentsFromPost(post_id) {
+    const post = await threads_db.get(options.post_id);
+    let comments = [];
+
+    for (let i = 0; i < post.comments.length; i++) {
+        let comment = await comments_db.get(post.comments[i]);
+        comment.children = comment.children.map(id => loadCommentsFromPost(id));
+        comments.push(comment);
+    }
+
+    return comments;
+} 
+
 async function getComments(response, options) {
-    // TODO: endpoint to get comment info from a post.
-    // Currently comments are expected to be structured like the following:
-    let mockComments = [
-        {
-            author: "Anish Gupta",
-            time: "40 minutes ago",
-            comment_body: "Go on umass uprint! You can scan your id at the printer and print there",
-            likes: 5,
-            children: [
-                {
-                author: "Nithin Joshy",
-                time: "20 minutes ago",
-                comment_body: "Thanks!! :)",
-                likes: 2,
-                children: []
-                }
-            ]
-        },
-        {
-            author: "Nithin Joshy",
-            time: "50 minutes ago",
-            comment_body: "pleasse help I also rly need help.",
-            likes: 0,
-            children: []
-        }
-    ];
-    
+    if (!await threadExists(options.post_id)) {
+        await sendError(response, 404, "Post not found.");
+        return;
+    }
+
+    const comments = loadCommentsFromPost(options.post_id);
+
     response.writeHead(200, headerFields);
-    response.write(JSON.stringify({ comments: mockComments }))
+    response.write(JSON.stringify({ comments: comments }));
     response.end();
 }
 
