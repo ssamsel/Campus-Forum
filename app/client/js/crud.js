@@ -75,8 +75,8 @@ export async function dumpThreads(){
     return data;
 }
 
-export async function updateLikeCount(count) {
-    const response = await fetch(`http://${SERVER_IP_PORT_TUPLE}/server/updateLikeCount?count=${count}`,
+export async function updateLikeCount(comment) {
+    const response = await fetch(`http://${SERVER_IP_PORT_TUPLE}/server/updateLikeCount?comment=${comment}`,
       { method: 'POST' }
     );
     const data = await response.json();
