@@ -35,16 +35,6 @@ async function loadPost() {
     return -1;
   }
 
-  // let mockTitle = 'How do I print at the library?';
-  // let mockAuthor = 'Anish Gupta';
-  // let mockPost = `Hi everyone,
-
-  // I'm a new student at UMass Amherst and I'm having trouble figuring out how to print at the W.E.B Dubois Library. I have some papers due soon and I really need to print them out, but I'm not sure where to start.
-  
-  // Can anyone walk me through the process of printing at the library? Do I need to bring my own printer or paper? I've heard that I need a UCard to print, but I'm not sure what that is or how to use it. Any advice or guidance would be greatly appreciated.
-  
-  // Thank you in advance!`;
-
   title.innerText = postData.title;
   author.innerText = postData.author;
   post.innerText = postData.post_body;
@@ -67,7 +57,7 @@ function generateCommentHTML(comment) {
       Like
     </button>
     <div style="display: inline-block; width: 50px"></div>
-    <button class="reply" id="reply-button">
+    <button class="reply" id="reply-${comment._id}">
       <img class="comment" src="img/comment.png" /> Reply
     </button>
     <br><br>`
@@ -85,27 +75,64 @@ function generateCommentHTML(comment) {
 
 async function loadComments() {
   const commentData = await crud.getComments(postId);
-  comments.innerHTML = commentData.comments.reduce((acc, e) => acc + generateCommentHTML(e), ''); 
+  console.log(commentData);
+  comments.innerHTML = commentData.comments.reduce((acc, e) => acc + generateCommentHTML(e), '');
+  setCommentEventHandlers();
 }
 
 if (await loadPost() === 0) {
   await loadComments();
 }
 
-const likeButtons = document.querySelectorAll('#like-button');
-likeButtons.forEach(button => {
-  button.addEventListener('click', async () => {
-    const likeCount = button.querySelector('.like-count');
-    let count = parseInt(likeCount.textContent);
-    count++;
-    likeCount.textContent = count;
-    const response = await crud.updateLikeCount(button.parentElement.id.split('-')[1]);
-    console.log(response);
+function setCommentEventHandlers () {
+  const likeButtons = document.querySelectorAll('#like-button');
+  likeButtons.forEach(button => {
+    button.addEventListener('click', async () => {
+      const likeCount = button.querySelector('.like-count');
+      let count = parseInt(likeCount.textContent);
+      count++;
+      likeCount.textContent = count;
+      const response = await crud.updateLikeCount(button.parentElement.id.split('-')[1]);
+      console.log(response);
   });
-});
 
-const replyButtons = document.querySelectorAll('#reply-BUTTON');
-replyButtons.forEach(button => {
-  button.addEventListener('click', () => {
+  const replyButtons = document.querySelectorAll('.reply');
+  replyButtons.forEach(button => {
+    button.addEventListener('click', (event) => {
+      const commentDiv = button.parentElement;
+      const parentId = button.id.split('-')[1];
+      button.disabled = true;
+      let div = document.createElement("div");
+      div.id = `reply-div-${parentId}`;
+      div.classList.add("w-50");
+      div.innerHTML = `
+        <textarea id="text-${parentId}" style="width: 100%" class="form-rounded" rows="7"
+          placeholder="What are your thoughts?"></textarea>
+        <br>
+        <button class="cancel_reply" id=cancel-${parentId} style="float: left" type="button" class="btn new-thread-button">Cancel</button>
+        <button class="comment_reply" id=post-${parentId} style="float: right" type="button" class="btn new-thread-button">Comment</button>
+        <br><br>
+      `
+      commentDiv.append(div);
+
+      document.getElementById(`cancel-${parentId}`).addEventListener('click', function (event) {
+        document.getElementById(`reply-${parentId}`).disabled = false;
+        event.target.parentElement.remove();
+      });
+
+      document.getElementById(`post-${parentId}`).addEventListener('click', async function (event) {
+        const text = document.getElementById(`text-${parentId}`).value;
+        const responseData = await crud.createComment("false", postId, parentId, username, pwHash, text);
+        document.getElementById(`reply-${parentId}`).disabled = false;
+        event.target.parentElement.remove();
+
+        if (responseData.error !== undefined){
+          alert(responseData.error);
+        }
+
+        await loadComments();
+      });
+    });
   });
-});
+}
+

@@ -206,6 +206,7 @@ async function createComment(response, options) {
       await comments_db.put(doc);
     });
   }
+
   await comments_db.put({
     _id: commentId,
     author: options.username,
@@ -239,17 +240,15 @@ async function getThread(response, options) {
   response.end();
 }
 
-async function loadCommentsFromPost(post_id) {
-  const post = await threads_db.get(post_id);
-  let comments = [];
-
-  for (let i = 0; i < post.comments.length; i++) {
-    let comment = await comments_db.get(post.comments[i]);
-    comment.children = comment.children.map(await loadCommentsFromPost);
-    comments.push(comment);
+async function loadComment(comment_id) {
+  const comment = await comments_db.get(comment_id);
+  for (let i = 0; i < comment.children.length; i++) {
+    const child = await loadComment(comment.children[i]);
+    comment.children[i] = child;
   }
 
-  return comments;
+  console.log(comment);
+  return comment;
 }
 
 async function getComments(response, options) {
@@ -258,7 +257,12 @@ async function getComments(response, options) {
     return;
   }
 
-  const raw_comments = await loadCommentsFromPost(options.post_id);
+  const post = await threads_db.get(options.post_id);
+  const raw_comments = [];
+  for (let i = 0; i < post.comments.length; i++) {
+    raw_comments.push(await loadComment(post.comments[i]));
+  }
+
   const comments = raw_comments.map((x) => {
     x.time = timeUtils.convertToRecencyString(x.time);
     return x;
