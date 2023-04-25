@@ -6,6 +6,7 @@ const postId = urlParams.get('title');
 const title = document.getElementById("title-div");
 const author = document.getElementById("author-div");
 const post = document.getElementById("post-body");
+const image = document.getElementById("image");
 
 const comments = document.getElementById('comments-div');
 const commentButton = document.getElementById('post_comment');
@@ -47,6 +48,9 @@ async function loadPost() {
   title.innerText = postData.title;
   author.innerText = postData.author;
   post.innerText = postData.post_body;
+  if (postData.imagePath !== undefined){
+    image.innerHTML = `<img src="${postData.imagePath}" />`
+  }
   return 0;
 }
 

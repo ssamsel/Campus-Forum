@@ -105,4 +105,5 @@ dist
 
 .DS_Store
 
-app/db/*
+app/db/**
+app/img/**

@@ -16,7 +16,7 @@ const accounts_db = new PouchDB(filePathPrefix + "/db/accounts");
 const threads_db = new PouchDB(filePathPrefix + "/db/threads");
 const comments_db = new PouchDB(filePathPrefix + "/db/comments");
 
-const accountsLoggedIn = { Juice999: true };
+const accountsLoggedIn = { Team5: true };
 
 // This is to allow for accessing the server from the same IP origin
 // Will probably be modified once this is properly deployed
@@ -109,17 +109,19 @@ async function loginValid(username, pwHash) {
   return true;
 }
 
-async function handleImageUpload(request, name) {
+function handleImageUpload(request) {
+  const filename = Date.now().toString() + ".png";
   const form = new formidable.IncomingForm({
     maxFields: 1,
     uploadDir: filePathPrefix + "/img/",
-    filename: () => name + ".png",
+    filename: () => filename,
   });
   try {
     form.parse(request);
   } catch (err) {
     console.error(err);
   }
+  return "/img/" + filename;
 }
 
 async function createThread(request, response, options) {
@@ -160,17 +162,13 @@ async function createThread(request, response, options) {
     return;
   }
 
-  if (hasImage) {
-    await handleImageUpload(request, post.title);
-  }
-
   threads_db.put({
     _id: post.title,
     author: username,
     body: post.text,
     time: Date.now(),
     images: hasImage ? 1 : 0,
-    imagePath: hasImage ? filePathPrefix + post.title + ".png" : undefined,
+    imagePath: hasImage ? handleImageUpload(request) : undefined,
     posts: 1,
     comments: [],
   });
@@ -235,6 +233,7 @@ async function getThread(response, options) {
       title: post._id,
       author: post.author,
       post_body: post.body,
+      imagePath: post.imagePath
     })
   );
   response.end();
