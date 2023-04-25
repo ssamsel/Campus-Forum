@@ -12,13 +12,13 @@ const comments = document.getElementById('comments-div');
 const commentButton = document.getElementById('post_comment');
 const newPostTextBox = document.getElementById('textBox');
 
-const username = window.sessionStorage.getItem("username");
-const pwHash = window.sessionStorage.getItem("pwHash");
+const username = window.sessionStorage.getItem("user");
+const password = window.sessionStorage.getItem("pw");
 
 
 commentButton.addEventListener('click', async function (event) {
   let text = newPostTextBox.value;
-  const responseData = await crud.createComment("true", postId, postId, username, pwHash, text);
+  const responseData = await crud.createComment("true", postId, postId, username, password, text);
   console.log(responseData);
   if (responseData.error !== undefined){
     alert(responseData.error);
@@ -123,7 +123,7 @@ function setCommentEventHandlers () {
 
       document.getElementById(`post-${parentId}`).addEventListener('click', async function (event) {
         const text = document.getElementById(`text-${parentId}`).value;
-        const responseData = await crud.createComment("false", postId, parentId, username, pwHash, text);
+        const responseData = await crud.createComment("false", postId, parentId, username, password, text);
         document.getElementById(`reply-${parentId}`).disabled = false;
         event.target.parentElement.remove();
 

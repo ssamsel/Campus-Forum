@@ -4,6 +4,7 @@ import PouchDB from "pouchdb";
 import formidable from "formidable"; // For handling image uploads
 import { readFile } from "fs/promises";
 import * as timeUtils from "./time.js";
+import {createHash} from "node:crypto";
 
 const DEFAULT_PORT = 3000;
 
@@ -25,6 +26,10 @@ const headerFields = {
   "Access-Control-Allow-Methods": "GET, DELETE, HEAD, OPTIONS, PUT, POST",
 };
 
+function hashPassword(password){
+  return createHash('sha256').update(password).digest('base64');
+}
+
 // Send an error message back to client
 // sendError(response: HTTPresponse, code: number, message: string): void
 async function sendError(response, code, message) {
@@ -45,21 +50,21 @@ async function createAccount(response, options) {
     return;
   }
 
-  await accounts_db.put({ _id: username, pwHash: options[username] });
+  await accounts_db.put({ _id: username, pwHash: hashPassword(options[username]) });
   response.writeHead(200, headerFields);
   response.write(JSON.stringify({ success: "Account created" }));
   response.end();
 }
 
-async function checkPwHash(username, hash) {
+async function checkPassword(username, password) {
   const account = await accounts_db.get(username);
-  return account.pwHash === hash;
+  return account.pwHash === hashPassword(password);
 }
 
 async function login(response, options) {
   const username = Object.keys(options)[0];
   if (await accountExists(username)) {
-    if (await checkPwHash(username, options[username])) {
+    if (await checkPassword(username, options[username])) {
       accountsLoggedIn[username] = true;
       response.writeHead(200, headerFields);
       response.write(JSON.stringify({ success: "Successfully logged in" }));
@@ -76,7 +81,7 @@ async function logout(response, options) {
   const username = Object.keys(options)[0];
   if (
     (await accountExists(username)) &&
-    (await checkPwHash(username, options[username]))
+    (await checkPassword(username, options[username]))
   ) {
     delete accountsLoggedIn[username];
   }
@@ -89,14 +94,14 @@ async function threadExists(title) {
   return docs.rows.some((x) => x.id === title);
 }
 
-async function loginValid(username, pwHash) {
-  if (username === null || pwHash === null) {
+async function loginValid(username, password) {
+  if (username === null || password === null) {
     return "You must be logged in for this operation.";
   }
 
   if (
     !(await accountExists(username)) ||
-    !(await checkPwHash(username, pwHash))
+    !(await checkPassword(username, password))
   ) {
     return "Bad Request";
   }
@@ -126,11 +131,11 @@ function handleImageUpload(request) {
 async function createThread(request, response, options) {
   const data = JSON.parse(options.data);
   const username = data.user;
-  const pwHash = data.pwHash;
+  const password = data.pw;
   const post = data.postData;
   const hasImage = data.hasImage;
 
-  const checkLogin = await loginValid(username, pwHash);
+  const checkLogin = await loginValid(username, password);
   if (checkLogin !== true) {
     await sendError(response, 400, checkLogin);
     return;
@@ -183,7 +188,7 @@ async function createComment(response, options) {
     return;
   }
 
-  const checkLogin = await loginValid(options.username, options.pwHash);
+  const checkLogin = await loginValid(options.username, options.pw);
   if (checkLogin !== true) {
     await sendError(response, 400, checkLogin);
     return;
@@ -279,7 +284,7 @@ async function deleteThread(response, options) {
   // Check if the user who created the post is the same user logged in.
   const data = JSON.parse(options.data);
   const username = data.user;
-  const pwHash = data.pwHash;
+  const password = data.pw;
   const post = data.postData;
 }
 
@@ -308,12 +313,12 @@ async function dumpThreads(response, options) {
 
 async function updateLikeCount(response, options) {
 
-  // const checkLogin = await loginValid(options.username, options.pwHash);
+  const checkLogin = await loginValid(options.username, options.pw);
 
-  // if (checkLogin !== true) {
-  //   await sendError(response, 400, checkLogin);
-  //   return;
-  // }
+  if (checkLogin !== true) {
+    await sendError(response, 400, checkLogin);
+    return;
+  }
   comments_db.get(options.comment).then(async function (doc) {
     doc.likes++;
     await comments_db.put(doc);

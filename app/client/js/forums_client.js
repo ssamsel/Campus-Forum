@@ -8,8 +8,8 @@ const image_upload = document.getElementById("image_upload");
 const output_div = document.getElementById("output");
 const threads_div = document.getElementById("threads");
 
-const username = window.sessionStorage.getItem("username");
-const pwHash = window.sessionStorage.getItem("pwHash");
+const username = window.sessionStorage.getItem("user");
+const password = window.sessionStorage.getItem("pw");
 
 if (username !== null) {
   account_link.innerHTML =
@@ -18,8 +18,8 @@ if (username !== null) {
     '</a> <button id="login_out" type="button" class="btn login-btn" style="width: auto">Log Out</button>';
   document.getElementById("login_out").addEventListener("click", async (e) => {
     await crud.logOut(
-      window.sessionStorage.getItem("username"),
-      window.sessionStorage.getItem("pwHash")
+      window.sessionStorage.getItem("user"),
+      window.sessionStorage.getItem("pw")
     );
     window.sessionStorage.clear();
     alert("You have logged out");
@@ -50,7 +50,7 @@ let threads_html =
 dumpedThreads.forEach((x, idx) => {
   const last = idx === dumpedThreads.length - 1 ? "bottom-row" : "";
   const template = `<div class="container-fluid forum ${last}">
-        <div class="w-50"><a href="http://${crud.SERVER_IP_PORT_TUPLE}/client/post.html?title=${x.title}">${x.title}</a></div>
+        <div class="w-50"><a href="${crud.ORIGIN}/client/post.html?title=${x.title}">${x.title}</a></div>
         <div class="col-sm row-item">
           <div class="circle-div">${x.images}</div>
         </div>
@@ -78,7 +78,7 @@ submit_button.addEventListener("click", async (e) => {
   image.append("image", image_upload.files[0]);
   const response = await crud.createThread(
     username,
-    pwHash,
+    password,
     post_data,
     image,
     image_upload.files[0] !== undefined
