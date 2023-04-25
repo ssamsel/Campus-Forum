@@ -11,6 +11,9 @@ const comments = document.getElementById('comments-div');
 const commentButton = document.getElementById('post_comment');
 const newPostTextBox = document.getElementById('textBox');
 
+const username = window.sessionStorage.getItem("username");
+const pwHash = window.sessionStorage.getItem("pwHash");
+
 const likeButtons = document.querySelectorAll('#like');
 likeButtons.forEach(button => {
   button.addEventListener('click', async () => {
@@ -26,6 +29,12 @@ const replyButtons = document.querySelectorAll('#reply');
 replyButtons.forEach(button => {
   button.addEventListener('click', () => {
   });
+});
+
+commentButton.addEventListener('click', async function (event) {
+  let text = newPostTextBox.innerText;
+  const responseData = await crud.createComment("true", postId, postId, username, pwHash, text);
+  console.log(responseData);
 });
 
 async function loadPost() {
