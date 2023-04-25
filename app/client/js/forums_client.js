@@ -13,7 +13,13 @@ const username = window.sessionStorage.getItem("username");
 const pwHash = window.sessionStorage.getItem("pwHash");
 
 if (username !== null) {
-    account_link.innerText = username;
+    account_link.innerHTML = '<a>'+ username +'</a> <button id="login_out" type="button" class="btn login-btn" style="width: auto">Log Out</button>';
+    document.getElementById('login_out').addEventListener("click", async (e) => {
+        await crud.logOut(window.sessionStorage.getItem("username"), window.sessionStorage.getItem("pwHash"));
+        window.sessionStorage.clear();
+        alert("You have logged out");
+        location.reload();
+    });
 }
 
 
