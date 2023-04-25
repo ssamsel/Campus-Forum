@@ -131,7 +131,7 @@ async function createThread(response, options) {
         return;
     }
 
-    threads_db.put({ _id: post.title, author: username, body: post.text, time: time.now(), images: 0, posts: 1, comments: []});
+    threads_db.put({ _id: post.title, author: username, body: post.text, time: Date.now(), images: 0, posts: 1, comments: []});
 
     response.writeHead(200, headerFields);
     response.write(JSON.stringify({ success: "Thread Created" }))
@@ -168,7 +168,7 @@ async function createComment(response, options) {
         });
     }
     console.log(options.text);
-    await comments_db.put({ _id: commentId, author: options.username, comment_body: options.text, time: time.now(), likes: 0, children: []});
+    await comments_db.put({ _id: commentId, author: options.username, comment_body: options.text, time: Date.now(), likes: 0, children: []});
 
     response.writeHead(200, headerFields);
     response.write(JSON.stringify({ success: "Comment Created" }))
