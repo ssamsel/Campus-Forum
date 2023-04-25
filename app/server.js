@@ -12,7 +12,7 @@ const filePathPrefix = process.argv[1].replace(/server\.js$/, "");
 
 const accounts_db = new PouchDB(filePathPrefix + "/db/accounts");
 const threads_db = new PouchDB(filePathPrefix + '/db/threads');
-
+const comments_db = new PouchDB(filePathPrefix + '/db/comments');
 
 const accountsLoggedIn = {};
 
@@ -27,7 +27,6 @@ async function sendError(response, code, message) {
     response.write(JSON.stringify({ error: message }));
     response.end();
 }
-
 
 async function accountExists(username) {
     const docs = await accounts_db.allDocs({ include_docs: true });
@@ -83,27 +82,37 @@ async function threadExists(title) {
     return docs.rows.some(x => x.id === title);
 }
 
+async function loginValid(username, pwHash) {
+    if (username === null || pwHash === null) {
+        return "You must be logged in for this operation.";
+    }
+
+    if (!await accountExists(username) || !await checkPwHash(username, pwHash)) {
+        return "Bad Request";
+    }
+
+    if (accountsLoggedIn[username] !== true) {
+        return "You must be logged in to create a thread";
+    }
+
+    return true;
+}
+
 async function createThread(response, options) {
     const data = JSON.parse(options.data);
     const username = data.user;
     const pwHash = data.pwHash;
     const post = data.postData;
 
-    if (username === null || pwHash === null) {
-        await sendError(response, 400, "You must be logged in to create a thread");
-    }
-    if (post === undefined) {
-        await sendError(response, 400, "Missing post in request");
-    }
-
-    if (!await accountExists(username) || !await checkPwHash(username, pwHash)) {
-        // This error is vague on purpose as it would only be triggered when somebody is trying to exploit
-        await sendError(response, 400, "Bad Request");
+    let checkLogin = await loginValid(username, pwHash);
+    console.log(checkLogin);
+    if (checkLogin !== true) {
+        await sendError(response, 400, checkLogin);
         return;
     }
 
-    if (accountsLoggedIn[username] !== true) {
-        await sendError(response, 400, "You must be logged in to create a thread");
+    if (post === undefined) {
+        await sendError(response, 400, "Missing post in request");
         return;
     }
 
@@ -122,51 +131,85 @@ async function createThread(response, options) {
         return;
     }
 
-    threads_db.put({ _id: post.title, author: username, body: post.text, time: Date.now(), images: 0, posts: 1 });
+    threads_db.put({ _id: post.title, author: username, body: post.text, time: time.now(), images: 0, posts: 1, comments: []});
 
     response.writeHead(200, headerFields);
     response.write(JSON.stringify({ success: "Thread Created" }))
     response.end();
 }
 
+async function createComment(response, options) {
+    if (!await threadExists(options.post_id)) {
+        await sendError(response, 404, "Post not found.");
+        return;
+    }
+
+    // let checkLogin = loginValid(options.username, options.pwHash);
+    // if (checkLogin !== true) {
+    //     await sendError(response, 400, checkLogin);
+    //     return;
+    // }
+
+    let post = await threads_db.get(options.post_id);
+    let commentId = post.posts.toString();
+    post.posts++;
+    await threads_db.put(post);
+    
+    if (options.post_parent === "true") {
+        threads_db.get(options.parent_id).then(async function (doc) {
+            console.log(doc);
+            doc.comments.push(commentId);
+            await threads_db.put(doc);
+        });
+    } else {
+        comments_db.get(options.parent_id).then(async function (doc) {
+            doc.children.push(commentId);
+            await comments_db.put(doc);
+        });
+    }
+    console.log(options.text);
+    await comments_db.put({ _id: commentId, author: options.username, comment_body: options.text, time: time.now(), likes: 0, children: []});
+
+    response.writeHead(200, headerFields);
+    response.write(JSON.stringify({ success: "Comment Created" }))
+    response.end();
+}
+
 async function getThread(response, options) {
-    // TODO: endpoint to return post info including: title, author, post body.
+    if (!await threadExists(options.post_id)) {
+        await sendError(response, 404, "Post not found.");
+        return;
+    }
+
     const post = await threads_db.get(options.post_id);
     response.writeHead(200, headerFields);
     response.write(JSON.stringify({ title: post._id, author: post.author, post_body: post.body }))
     response.end();
 }
 
+async function loadCommentsFromPost(post_id) {
+    const post = await threads_db.get(post_id);
+    let comments = [];
+
+    for (let i = 0; i < post.comments.length; i++) {
+        let comment = await comments_db.get(post.comments[i]);
+        comment.children = comment.children.map(await loadCommentsFromPost);
+        comments.push(comment);
+    }
+
+    return comments;
+} 
+
 async function getComments(response, options) {
-    // TODO: endpoint to get comment info from a post.
-    // Currently comments are expected to be structured like the following:
-    let mockComments = [
-        {
-            author: "Anish Gupta",
-            time: "40 minutes ago",
-            comment_body: "Go on umass uprint! You can scan your id at the printer and print there",
-            likes: 5,
-            children: [
-                {
-                    author: "Nithin Joshy",
-                    time: "20 minutes ago",
-                    comment_body: "Thanks!! :)",
-                    likes: 2,
-                    children: []
-                }
-            ]
-        },
-        {
-            author: "Nithin Joshy",
-            time: "50 minutes ago",
-            comment_body: "pleasse help I also rly need help.",
-            likes: 0,
-            children: []
-        }
-    ];
+    if (!await threadExists(options.post_id)) {
+        await sendError(response, 404, "Post not found.");
+        return;
+    }
+
+    const comments = await loadCommentsFromPost(options.post_id);
 
     response.writeHead(200, headerFields);
-    response.write(JSON.stringify({ comments: mockComments }))
+    response.write(JSON.stringify({ comments: comments }));
     response.end();
 }
 
@@ -228,6 +271,11 @@ async function server(request, response) {
 
     if (method === 'POST' && pathname.startsWith('/server/createThread')) {
         createThread(response, options);
+        return;
+    }
+
+    if (method === 'POST' && pathname.startsWith('/server/createComment')) {
+        createComment(response, options);
         return;
     }
 

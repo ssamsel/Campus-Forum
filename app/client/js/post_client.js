@@ -11,6 +11,9 @@ const comments = document.getElementById('comments-div');
 const commentButton = document.getElementById('post_comment');
 const newPostTextBox = document.getElementById('textBox');
 
+const username = window.sessionStorage.getItem("username");
+const pwHash = window.sessionStorage.getItem("pwHash");
+
 const likeButtons = document.querySelectorAll('#like');
 likeButtons.forEach(button => {
   button.addEventListener('click', async () => {
@@ -28,8 +31,21 @@ replyButtons.forEach(button => {
   });
 });
 
+commentButton.addEventListener('click', async function (event) {
+  let text = newPostTextBox.innerText;
+  const responseData = await crud.createComment("true", postId, postId, username, pwHash, text);
+  console.log(responseData);
+  await loadComments();
+});
+
 async function loadPost() {
   const postData = await crud.getThread(postId);
+  
+  if ('error' in postData) {
+    title.innerText = 'Error';
+    post.innerText = postData.error;
+    return -1;
+  }
 
   // let mockTitle = 'How do I print at the library?';
   // let mockAuthor = 'Anish Gupta';
@@ -44,6 +60,7 @@ async function loadPost() {
   title.innerText = postData.title;
   author.innerText = postData.author;
   post.innerText = postData.post_body;
+  return 0;
 }
 
 function generateCommentHTML(comment) {
@@ -77,8 +94,10 @@ function generateCommentHTML(comment) {
 
 async function loadComments() {
   const commentData = await crud.getComments(postId);
+  console.log(commentData);
   comments.innerHTML = commentData.comments.reduce((acc, e) => acc + generateCommentHTML(e), ''); 
 }
 
-await loadPost();
-await loadComments();
+if (await loadPost() === 0) {
+  await loadComments();
+}
