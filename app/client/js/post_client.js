@@ -14,23 +14,6 @@ const newPostTextBox = document.getElementById('textBox');
 const username = window.sessionStorage.getItem("username");
 const pwHash = window.sessionStorage.getItem("pwHash");
 
-const likeButtons = document.querySelectorAll('#like');
-likeButtons.forEach(button => {
-  button.addEventListener('click', async () => {
-    const likeCount = button.querySelector('.like-count');
-    let count = parseInt(likeCount.textContent);
-    count++;
-    console.log(count);
-    likeCount.textContent = count;
-    const response = await crud.updateLikeCount(count);
-  });
-});
-
-const replyButtons = document.querySelectorAll('#reply');
-replyButtons.forEach(button => {
-  button.addEventListener('click', () => {
-  });
-});
 
 commentButton.addEventListener('click', async function (event) {
   let text = newPostTextBox.value;
@@ -103,3 +86,21 @@ async function loadComments() {
 if (await loadPost() === 0) {
   await loadComments();
 }
+
+const likeButtons = document.querySelectorAll('#like-button');
+likeButtons.forEach(button => {
+  button.addEventListener('click', async () => {
+    const likeCount = button.querySelector('.like-count');
+    let count = parseInt(likeCount.textContent);
+    count++;
+    console.log(count);
+    likeCount.textContent = count;
+    const response = await crud.updateLikeCount(count);
+  });
+});
+
+const replyButtons = document.querySelectorAll('#reply');
+replyButtons.forEach(button => {
+  button.addEventListener('click', () => {
+  });
+});
