@@ -309,12 +309,10 @@ async function updateLikeCount(response, options) {
   //   await sendError(response, 400, checkLogin);
   //   return;
   // }
-  console.log("hELLO");
   comments_db.get(options.comment).then(async function (doc) {
     doc.likes++;
     await comments_db.put(doc);
   });
-  console.log("hELLO");
 
   response.writeHead(200, headerFields);
   response.write(JSON.stringify({ success: "Comment Like Count Updated" }));
