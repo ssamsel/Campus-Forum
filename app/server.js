@@ -301,6 +301,27 @@ async function dumpThreads(response, options) {
   response.end();
 }
 
+async function updateLikeCount(response, options) {
+
+  // const checkLogin = await loginValid(options.username, options.pwHash);
+
+  // if (checkLogin !== true) {
+  //   await sendError(response, 400, checkLogin);
+  //   return;
+  // }
+  console.log("hELLO");
+  comments_db.get(options.comment).then(async function (doc) {
+    doc.likes++;
+    await comments_db.put(doc);
+  });
+  console.log("hELLO");
+
+  response.writeHead(200, headerFields);
+  response.write(JSON.stringify({ success: "Comment Like Count Updated" }));
+  response.end();
+}
+
+
 async function server(request, response) {
   const parsedURL = url.parse(request.url, true);
   const options = parsedURL.query;
@@ -354,6 +375,10 @@ async function server(request, response) {
   }
   if (method === "GET" && pathname.startsWith("/server/dumpThreads")) {
     dumpThreads(response, options);
+    return;
+  }
+  if (method === "POST" && pathname.startsWith("/server/updateLikeCount")) {
+    updateLikeCount(response, options);
     return;
   }
 
