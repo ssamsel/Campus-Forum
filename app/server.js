@@ -160,14 +160,14 @@ async function createComment(response, options) {
     return;
   }
 
-  let checkLogin = await loginValid(options.username, options.pwHash);
+  const checkLogin = await loginValid(options.username, options.pwHash);
   if (checkLogin !== true) {
     await sendError(response, 400, checkLogin);
     return;
   }
 
-  let post = await threads_db.get(options.post_id);
-  let commentId = post.posts.toString();
+  const post = await threads_db.get(options.post_id);
+  const commentId = post.posts.toString();
   post.posts++;
   await threads_db.put(post);
 
