@@ -246,7 +246,6 @@ async function loadComment(comment_id) {
     comment.children[i] = child;
   }
 
-  console.log(comment);
   return comment;
 }
 
@@ -262,10 +261,14 @@ async function getComments(response, options) {
     raw_comments.push(await loadComment(post.comments[i]));
   }
 
-  const comments = raw_comments.map((x) => {
+  function recursiveMapHOF(x) {
     x.time = timeUtils.convertToRecencyString(x.time);
+    x.children = x.children.map(recursiveMapHOF);
     return x;
-  });
+  }
+
+  const comments = raw_comments.map(recursiveMapHOF);
+
   response.writeHead(200, headerFields);
   response.write(JSON.stringify({ comments: comments }));
   response.end();
