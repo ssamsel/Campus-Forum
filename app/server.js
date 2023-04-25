@@ -314,7 +314,7 @@ async function server(request, response) {
                 type = 'text/html';
             }
             else if (pathname.endsWith('.png')) {
-                type = 'text/plain'
+                type = 'image/png'
             }
             else {
                 type = 'text/plain';
