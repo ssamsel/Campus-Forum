@@ -19,6 +19,7 @@ const password = window.sessionStorage.getItem("pw");
 // Add logout button and display username on top right if user logged in;
 Util.integrateAuthUI();
 
+// Adds functionality for creating a comment
 commentButton.addEventListener("click", async function (event) {
   let text = newPostTextBox.value;
   const responseData = await crud.createComment(
@@ -35,6 +36,7 @@ commentButton.addEventListener("click", async function (event) {
   await loadComments();
 });
 
+// Loads the thread/forum for the page
 async function loadPost() {
   const postData = await crud.getThread(postId);
 
@@ -48,19 +50,28 @@ async function loadPost() {
   author.innerText = postData.author;
   post.innerText = postData.post_body;
 
+  // Creates the navigation link at the top of page
   navigation.innerHTML = `<a href="/">Home > Newest > </a> ${postData.title}`;
 
   // Add delete button if user is authenticated and is the post creator
   if ((await Util.isAuthenticated()) && postData.author === username) {
     deleteDiv.innerHTML =
       '<button id="delete-thread" class="btn delete-btn" type="button">Delete Thread</button>';
-    document.getElementById("delete-thread").addEventListener("click", async (e) => {
-      const response = await crud.deleteThread(username, password, postData.title);
-      if (response.error !== undefined){
-        alert(response.error);
-      }
-      location.reload();
-    })
+
+    // Make delete function delete the thread
+    document
+      .getElementById("delete-thread")
+      .addEventListener("click", async (e) => {
+        const response = await crud.deleteThread(
+          username,
+          password,
+          postData.title
+        );
+        if (response.error !== undefined) {
+          alert(response.error);
+        }
+        location.reload();
+      });
   }
 
   // Add image to page if this post has an image
@@ -70,6 +81,7 @@ async function loadPost() {
   return 0;
 }
 
+// Creates the html for comment and puts it in the page
 function generateCommentHTML(comment) {
   let commentHTML = `<div id = comment-${comment._id}>
     <p class="medium-text">${comment.author}</p>
@@ -121,7 +133,8 @@ function setCommentEventHandlers() {
       count++;
       likeCount.textContent = count;
       const response = await crud.updateLikeCount(
-        button.parentElement.id.split("-")[1]
+        button.parentElement.id.split("-")[1] +
+          button.parentElement.id.split("-")[2]
       );
     });
   });
@@ -159,7 +172,7 @@ function setCommentEventHandlers() {
           const responseData = await crud.createComment(
             "false",
             postId,
-            parentId,
+            `${parentId}-${postId}`,
             username,
             password,
             text
