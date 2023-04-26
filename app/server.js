@@ -283,12 +283,24 @@ async function getComments(response, options) {
 }
 
 async function deleteThread(response, options) {
-  // TODO: Check if post exists first
-  // Check if the user who created the post is the same user logged in.
   const data = JSON.parse(options.data);
-  const username = data.user;
-  const password = data.pw;
-  const post = data.postData;
+
+  const checkLogin = await loginValid(data.user, data.pw);
+  if (checkLogin !== true) {
+    await sendError(response, 400, checkLogin);
+    return;
+  }
+
+  if (!(await threadExists(data.title))) {
+    await sendError(response, 400, "Post does not exist");
+    return;
+  }
+
+  await threads_db.remove(await threads_db.get(data.title));
+  // TODO Remove comments too
+
+  response.writeHead(200, headerFields);
+  response.end();
 }
 
 async function dumpThreads(response, options) {
@@ -328,6 +340,12 @@ async function updateLikeCount(response, options) {
 
   response.writeHead(200, headerFields);
   response.write(JSON.stringify({ success: "Comment Like Count Updated" }));
+  response.end();
+}
+
+async function isLoggedIn(response, options) {
+  response.writeHead(200, headerFields);
+  response.write(JSON.stringify(options.user in accountsLoggedIn));
   response.end();
 }
 
@@ -388,6 +406,10 @@ async function server(request, response) {
   }
   if (method === "POST" && pathname.startsWith("/server/updateLikeCount")) {
     updateLikeCount(response, options);
+    return;
+  }
+  if (method === "GET" && pathname.startsWith("/server/isLoggedIn")) {
+    isLoggedIn(response, options);
     return;
   }
 

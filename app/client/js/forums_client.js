@@ -1,6 +1,6 @@
 import * as crud from "./crud.js";
+import * as Util from "./util.js";
 
-const account_link = document.getElementById("account_link");
 const submit_button = document.getElementById("submit_post");
 const create_post_text = document.getElementById("post_text");
 const create_post_title = document.getElementById("create_post_title");
@@ -11,21 +11,8 @@ const threads_div = document.getElementById("threads");
 const username = window.sessionStorage.getItem("user");
 const password = window.sessionStorage.getItem("pw");
 
-if (username !== null) {
-  account_link.innerHTML =
-    "<a>" +
-    username +
-    '</a> <button id="login_out" type="button" class="btn login-btn" style="width: auto">Log Out</button>';
-  document.getElementById("login_out").addEventListener("click", async (e) => {
-    await crud.logOut(
-      window.sessionStorage.getItem("user"),
-      window.sessionStorage.getItem("pw")
-    );
-    window.sessionStorage.clear();
-    alert("You have logged out");
-    location.reload();
-  });
-}
+// Add logout button and display username on top right if user logged in;
+Util.integrateAuthUI();
 
 // Get the threads and put them in the page
 const dumpedThreads = await crud.dumpThreads();
