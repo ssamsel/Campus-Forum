@@ -16,7 +16,7 @@ const accounts_db = new PouchDB(filePathPrefix + "/db/accounts");
 const threads_db = new PouchDB(filePathPrefix + "/db/threads");
 const comments_db = new PouchDB(filePathPrefix + "/db/comments");
 
-const accountsLoggedIn = { Shymon: true };
+const accountsLoggedIn = {};
 
 // This is to allow for accessing the server from the same IP origin
 // Will probably be modified once this is properly deployed
@@ -198,7 +198,9 @@ async function createComment(response, options) {
   }
 
   const post = await threads_db.get(options.post_id);
-  const commentId = post.posts.toString();
+  const commentId = post.posts.toString() + "-" + options.post_id;
+  console.log(commentId);
+  console.log(options);
   post.posts++;
   await threads_db.put(post, { _rev: post._rev, force: true });
 
@@ -213,7 +215,6 @@ async function createComment(response, options) {
       await comments_db.put(doc), { _rev: doc._rev, force: true };
     });
   }
-
   await comments_db.put({
     _id: commentId,
     author: options.username,

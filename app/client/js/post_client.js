@@ -19,7 +19,6 @@ const password = window.sessionStorage.getItem("pw");
 // Add logout button and display username on top right if user logged in;
 Util.integrateAuthUI();
 
-
 // Adds functionality for creating a comment
 commentButton.addEventListener("click", async function (event) {
   let text = newPostTextBox.value;
@@ -58,15 +57,21 @@ async function loadPost() {
   if ((await Util.isAuthenticated()) && postData.author === username) {
     deleteDiv.innerHTML =
       '<button id="delete-thread" class="btn delete-btn" type="button">Delete Thread</button>';
-    
-      // Make delete function delete the thread 
-    document.getElementById("delete-thread").addEventListener("click", async (e) => {
-      const response = await crud.deleteThread(username, password, postData.title);
-      if (response.error !== undefined){
-        alert(response.error);
-      }
-      location.reload();
-    })
+
+    // Make delete function delete the thread
+    document
+      .getElementById("delete-thread")
+      .addEventListener("click", async (e) => {
+        const response = await crud.deleteThread(
+          username,
+          password,
+          postData.title
+        );
+        if (response.error !== undefined) {
+          alert(response.error);
+        }
+        location.reload();
+      });
   }
 
   // Add image to page if this post has an image
@@ -128,7 +133,8 @@ function setCommentEventHandlers() {
       count++;
       likeCount.textContent = count;
       const response = await crud.updateLikeCount(
-        button.parentElement.id.split("-")[1]
+        button.parentElement.id.split("-")[1] +
+          button.parentElement.id.split("-")[2]
       );
     });
   });
@@ -166,7 +172,7 @@ function setCommentEventHandlers() {
           const responseData = await crud.createComment(
             "false",
             postId,
-            parentId,
+            `${parentId}-${postId}`,
             username,
             password,
             text
