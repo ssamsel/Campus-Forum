@@ -4,7 +4,7 @@ import PouchDB from "pouchdb";
 import formidable from "formidable"; // For handling image uploads
 import { readFile } from "fs/promises";
 import * as timeUtils from "./time.js";
-import {createHash} from "node:crypto";
+import { createHash } from "node:crypto";
 
 const DEFAULT_PORT = 3000;
 
@@ -16,7 +16,7 @@ const accounts_db = new PouchDB(filePathPrefix + "/db/accounts");
 const threads_db = new PouchDB(filePathPrefix + "/db/threads");
 const comments_db = new PouchDB(filePathPrefix + "/db/comments");
 
-const accountsLoggedIn = {};
+const accountsLoggedIn = { Shymon: true };
 
 // This is to allow for accessing the server from the same IP origin
 // Will probably be modified once this is properly deployed
@@ -26,8 +26,8 @@ const headerFields = {
   "Access-Control-Allow-Methods": "GET, DELETE, HEAD, OPTIONS, PUT, POST",
 };
 
-function hashPassword(password){
-  return createHash('sha256').update(password).digest('base64');
+function hashPassword(password) {
+  return createHash("sha256").update(password).digest("base64");
 }
 
 // Send an error message back to client
@@ -50,7 +50,10 @@ async function createAccount(response, options) {
     return;
   }
 
-  await accounts_db.put({ _id: username, pwHash: hashPassword(options[username]) });
+  await accounts_db.put({
+    _id: username,
+    pwHash: hashPassword(options[username]),
+  });
   response.writeHead(200, headerFields);
   response.write(JSON.stringify({ success: "Account created" }));
   response.end();
@@ -197,17 +200,17 @@ async function createComment(response, options) {
   const post = await threads_db.get(options.post_id);
   const commentId = post.posts.toString();
   post.posts++;
-  await threads_db.put(post);
+  await threads_db.put(post, { _rev: post._rev, force: true });
 
   if (options.post_parent === "true") {
     threads_db.get(options.parent_id).then(async function (doc) {
       doc.comments.push(commentId);
-      await threads_db.put(doc);
+      await threads_db.put(doc, { _rev: doc._rev, force: true });
     });
   } else {
     comments_db.get(options.parent_id).then(async function (doc) {
       doc.children.push(commentId);
-      await comments_db.put(doc);
+      await comments_db.put(doc), { _rev: doc._rev, force: true };
     });
   }
 
@@ -238,7 +241,7 @@ async function getThread(response, options) {
       title: post._id,
       author: post.author,
       post_body: post.body,
-      imagePath: post.imagePath
+      imagePath: post.imagePath,
     })
   );
   response.end();
@@ -280,12 +283,24 @@ async function getComments(response, options) {
 }
 
 async function deleteThread(response, options) {
-  // TODO: Check if post exists first
-  // Check if the user who created the post is the same user logged in.
   const data = JSON.parse(options.data);
-  const username = data.user;
-  const password = data.pw;
-  const post = data.postData;
+
+  const checkLogin = await loginValid(data.user, data.pw);
+  if (checkLogin !== true) {
+    await sendError(response, 400, checkLogin);
+    return;
+  }
+
+  if (!(await threadExists(data.title))) {
+    await sendError(response, 400, "Post does not exist");
+    return;
+  }
+
+  await threads_db.remove(await threads_db.get(data.title));
+  // TODO Remove comments too
+
+  response.writeHead(200, headerFields);
+  response.end();
 }
 
 async function dumpThreads(response, options) {
@@ -312,7 +327,6 @@ async function dumpThreads(response, options) {
 }
 
 async function updateLikeCount(response, options) {
-
   const checkLogin = await loginValid(options.username, options.pw);
 
   if (checkLogin !== true) {
@@ -321,7 +335,7 @@ async function updateLikeCount(response, options) {
   }
   comments_db.get(options.comment).then(async function (doc) {
     doc.likes++;
-    await comments_db.put(doc);
+    await comments_db.put(doc, { _rev: doc.rev, force: true });
   });
 
   response.writeHead(200, headerFields);
@@ -329,6 +343,11 @@ async function updateLikeCount(response, options) {
   response.end();
 }
 
+async function isLoggedIn(response, options) {
+  response.writeHead(200, headerFields);
+  response.write(JSON.stringify(options.user in accountsLoggedIn));
+  response.end();
+}
 
 async function server(request, response) {
   const parsedURL = url.parse(request.url, true);
@@ -387,6 +406,10 @@ async function server(request, response) {
   }
   if (method === "POST" && pathname.startsWith("/server/updateLikeCount")) {
     updateLikeCount(response, options);
+    return;
+  }
+  if (method === "GET" && pathname.startsWith("/server/isLoggedIn")) {
+    isLoggedIn(response, options);
     return;
   }
 

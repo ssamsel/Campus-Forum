@@ -41,6 +41,14 @@ The four types of data our application will use are:
 3. Users will be able to like posts and comments. There will be a button that when pressed will like the post or comment. These likes will be kept track of and can be used to make good, relevant posts and comments more visible to other users.
 4. Posts about official events can advertise times and locations and will allow other users to press a button to RSVP. This will serve as a way to limit attendees and communicate interest in a specific event to others on campus as well as event organizers.
 
+### How to Start App ###
+PouchDB and Formidable are required for this to work.  
+Install them with by running the following in the root of this project:  
+`npm i --save pouchdb`  
+`npm i --save formidable`  
+Run the server by executing `node app/server.js <PORT>` from the repository root  
+If you do not specify the port number it will use the default (3000).  
+Navigate to [127.0.0.1:3000](http://127.0.0.1:3000) in your web browser to see the home/forums page and use the application.
 ### License ###
 
 [Apache V2 License](https://opensource.org/license/apache-2-0/)

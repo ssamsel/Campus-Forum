@@ -1,26 +1,35 @@
-import * as crud from './crud.js';
-
+import * as crud from "./crud.js";
+import * as Util from "./util.js";
 const urlParams = new URLSearchParams(window.location.search);
-const postId = urlParams.get('title');
+const postId = urlParams.get("title");
 
+const deleteDiv = document.getElementById("delete-div");
 const title = document.getElementById("title-div");
 const author = document.getElementById("author-div");
 const post = document.getElementById("post-body");
 const image = document.getElementById("image");
-
-const comments = document.getElementById('comments-div');
-const commentButton = document.getElementById('post_comment');
-const newPostTextBox = document.getElementById('textBox');
+const navigation = document.getElementById("navigation");
+const comments = document.getElementById("comments-div");
+const commentButton = document.getElementById("post_comment");
+const newPostTextBox = document.getElementById("textBox");
 
 const username = window.sessionStorage.getItem("user");
 const password = window.sessionStorage.getItem("pw");
 
+// Add logout button and display username on top right if user logged in;
+Util.integrateAuthUI();
 
-commentButton.addEventListener('click', async function (event) {
+commentButton.addEventListener("click", async function (event) {
   let text = newPostTextBox.value;
-  const responseData = await crud.createComment("true", postId, postId, username, password, text);
-  console.log(responseData);
-  if (responseData.error !== undefined){
+  const responseData = await crud.createComment(
+    "true",
+    postId,
+    postId,
+    username,
+    password,
+    text
+  );
+  if (responseData.error !== undefined) {
     alert(responseData.error);
   }
   await loadComments();
@@ -28,9 +37,9 @@ commentButton.addEventListener('click', async function (event) {
 
 async function loadPost() {
   const postData = await crud.getThread(postId);
-  
-  if ('error' in postData) {
-    title.innerText = 'Error';
+
+  if ("error" in postData) {
+    title.innerText = "Error";
     post.innerText = postData.error;
     return -1;
   }
@@ -38,8 +47,25 @@ async function loadPost() {
   title.innerText = postData.title;
   author.innerText = postData.author;
   post.innerText = postData.post_body;
-  if (postData.imagePath !== undefined){
-    image.innerHTML = `<img class="img_upload" src="${postData.imagePath}" />`
+
+  navigation.innerHTML = `<a href="/">Home > Newest > </a> ${postData.title}`;
+
+  // Add delete button if user is authenticated and is the post creator
+  if ((await Util.isAuthenticated()) && postData.author === username) {
+    deleteDiv.innerHTML =
+      '<button id="delete-thread" class="btn delete-btn" type="button">Delete Thread</button>';
+    document.getElementById("delete-thread").addEventListener("click", async (e) => {
+      const response = await crud.deleteThread(username, password, postData.title);
+      if (response.error !== undefined){
+        alert(response.error);
+      }
+      location.reload();
+    })
+  }
+
+  // Add image to page if this post has an image
+  if (postData.imagePath !== undefined) {
+    image.innerHTML = `<img class="img_upload" src="${postData.imagePath}" />`;
   }
   return 0;
 }
@@ -60,10 +86,10 @@ function generateCommentHTML(comment) {
     <button class="reply" id="reply-${comment._id}">
       <img class="comment" src="img/comment.png" /> Reply
     </button>
-    <br><br>`
-  
+    <br><br>`;
+
   if (comment.children.length > 0) {
-    commentHTML += `<div class="ml-5">`
+    commentHTML += `<div class="ml-5">`;
     for (let i = 0; i < comment.children.length; i++) {
       commentHTML += generateCommentHTML(comment.children[i]);
     }
@@ -75,33 +101,36 @@ function generateCommentHTML(comment) {
 
 async function loadComments() {
   const commentData = await crud.getComments(postId);
-  console.log(commentData);
-  comments.innerHTML = commentData.comments.reduce((acc, e) => acc + generateCommentHTML(e), '');
+  comments.innerHTML = commentData.comments.reduce(
+    (acc, e) => acc + generateCommentHTML(e),
+    ""
+  );
   setCommentEventHandlers();
 }
 
-if (await loadPost() === 0) {
+if ((await loadPost()) === 0) {
   await loadComments();
 }
 
-function setCommentEventHandlers () {
-  const likeButtons = document.querySelectorAll('#like-button');
-  likeButtons.forEach(button => {
-    button.addEventListener('click', async () => {
-      const likeCount = button.querySelector('.like-count');
+function setCommentEventHandlers() {
+  const likeButtons = document.querySelectorAll("#like-button");
+  likeButtons.forEach((button) => {
+    button.addEventListener("click", async () => {
+      const likeCount = button.querySelector(".like-count");
       let count = parseInt(likeCount.textContent);
       count++;
       likeCount.textContent = count;
-      const response = await crud.updateLikeCount(button.parentElement.id.split('-')[1]);
-      console.log(response);
+      const response = await crud.updateLikeCount(
+        button.parentElement.id.split("-")[1]
+      );
     });
   });
 
-  const replyButtons = document.querySelectorAll('.reply');
-  replyButtons.forEach(button => {
-    button.addEventListener('click', (event) => {
+  const replyButtons = document.querySelectorAll(".reply");
+  replyButtons.forEach((button) => {
+    button.addEventListener("click", (event) => {
       const commentDiv = button.parentElement;
-      const parentId = button.id.split('-')[1];
+      const parentId = button.id.split("-")[1];
       button.disabled = true;
       let div = document.createElement("div");
       div.id = `reply-div-${parentId}`;
@@ -113,27 +142,37 @@ function setCommentEventHandlers () {
         <button class="cancel_reply" id=cancel-${parentId} style="float: left" type="button" class="btn new-thread-button">Cancel</button>
         <button class="comment_reply" id=post-${parentId} style="float: right" type="button" class="btn new-thread-button">Comment</button>
         <br><br>
-      `
+      `;
       commentDiv.append(div);
 
-      document.getElementById(`cancel-${parentId}`).addEventListener('click', function (event) {
-        document.getElementById(`reply-${parentId}`).disabled = false;
-        event.target.parentElement.remove();
-      });
+      document
+        .getElementById(`cancel-${parentId}`)
+        .addEventListener("click", function (event) {
+          document.getElementById(`reply-${parentId}`).disabled = false;
+          event.target.parentElement.remove();
+        });
 
-      document.getElementById(`post-${parentId}`).addEventListener('click', async function (event) {
-        const text = document.getElementById(`text-${parentId}`).value;
-        const responseData = await crud.createComment("false", postId, parentId, username, password, text);
-        document.getElementById(`reply-${parentId}`).disabled = false;
-        event.target.parentElement.remove();
+      document
+        .getElementById(`post-${parentId}`)
+        .addEventListener("click", async function (event) {
+          const text = document.getElementById(`text-${parentId}`).value;
+          const responseData = await crud.createComment(
+            "false",
+            postId,
+            parentId,
+            username,
+            password,
+            text
+          );
+          document.getElementById(`reply-${parentId}`).disabled = false;
+          event.target.parentElement.remove();
 
-        if (responseData.error !== undefined){
-          alert(responseData.error);
-        }
+          if (responseData.error !== undefined) {
+            alert(responseData.error);
+          }
 
-        await loadComments();
-      });
+          await loadComments();
+        });
     });
   });
 }
-

@@ -55,10 +55,10 @@ export async function getComments(post) {
     return data;
 }
 
-export async function deleteThread(username, password, post) {
-    const message = JSON.stringify({ user: username, pw: password, postData: post });
+export async function deleteThread(username, password, title) {
+    const message = JSON.stringify({ user: username, pw: password, title: title });
     const response = await fetch(`${ORIGIN}/server/deleteThread?data=${message}`, 
-        { method: 'POST' }
+        { method: 'DELETE' }
     );
     const data = await response.json();
     return data;
@@ -75,6 +75,14 @@ export async function dumpThreads(){
 export async function updateLikeCount(comment) {
     const response = await fetch(`${ORIGIN}/server/updateLikeCount?comment=${comment}`,
       { method: 'POST' }
+    );
+    const data = await response.json();
+    return data;
+}
+
+export async function isLoggedIn(username){
+    const response = await fetch(`${ORIGIN}/server/isLoggedIn?user=${username}`, 
+    {method: 'GET'}
     );
     const data = await response.json();
     return data;
