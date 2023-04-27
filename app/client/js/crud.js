@@ -84,8 +84,8 @@ export async function dumpThreads() {
 }
 
 // Updates the like count for comment
-export async function updateLikeCount(comment) {
-    const response = await fetch(`${ORIGIN}/server/updateLikeCount?comment=${comment}`,
+export async function updateLikeCount(comment, username, password) {
+    const response = await fetch(`${ORIGIN}/server/updateLikeCount?comment=${comment}&user=${username}&pw=${password}`,
         { method: 'POST' }
     );
     const data = await response.json();

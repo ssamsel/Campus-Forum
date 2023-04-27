@@ -16,7 +16,7 @@ const accounts_db = new PouchDB(filePathPrefix + "/db/accounts");
 const threads_db = new PouchDB(filePathPrefix + "/db/threads");
 const comments_db = new PouchDB(filePathPrefix + "/db/comments");
 
-const accountsLoggedIn = { Lorem: true };
+const accountsLoggedIn = { lol123: true };
 
 // This is to allow for accessing the server from the same IP origin
 // Will probably be modified once this is properly deployed
@@ -53,6 +53,7 @@ async function createAccount(response, options) {
   await accounts_db.put({
     _id: username,
     pwHash: hashPassword(options[username]),
+    likes: [],
   });
   response.writeHead(200, headerFields);
   response.write(JSON.stringify({ success: "Account created" }));
@@ -99,6 +100,9 @@ async function threadExists(title) {
 
 async function loginValid(username, password) {
   if (username === null || password === null) {
+    return "You must be logged in for this operation.";
+  }
+  if (username === 'null' || password === 'null') {
     return "You must be logged in for this operation.";
   }
 
@@ -329,14 +333,26 @@ async function dumpThreads(response, options) {
 }
 
 async function updateLikeCount(response, options) {
-  const checkLogin = await loginValid(options.username, options.pw);
-
+  const checkLogin = await loginValid(options.user, options.pw);
   if (checkLogin !== true) {
     await sendError(response, 400, checkLogin);
     return;
   }
+
+
+
   comments_db.get(options.comment).then(async function (doc) {
-    doc.likes++;
+    const userDoc = await accounts_db.get(options.user);
+
+    if (userDoc.likes.some(x => x === options.comment)) {
+      --doc.likes;
+      userDoc.likes.splice(userDoc.likes.indexOf(options.comment), 1);
+    }
+    else {
+      ++doc.likes;
+      userDoc.likes.push(options.comment);
+    }
+    await accounts_db.put(userDoc, { _rev: userDoc.rev, force: true });
     await comments_db.put(doc, { _rev: doc.rev, force: true });
   });
 

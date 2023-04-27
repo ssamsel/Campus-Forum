@@ -73,7 +73,7 @@ async function loadPost() {
 
 // Creates the html for comment and puts it in the page
 function generateCommentHTML(comment) {
-  let commentHTML = `<div id = comment-${comment._id}>
+  let commentHTML = `<div id = comment-${comment._id.replaceAll(/ /g, "_")}>
     <p class="medium-text">${comment.author}</p>
     <p class="small-text">${comment.time}</p>
     <div class="vl"></div>
@@ -118,14 +118,15 @@ function setCommentEventHandlers() {
   const likeButtons = document.querySelectorAll("#like-button");
   likeButtons.forEach((button) => {
     button.addEventListener("click", async () => {
-      const likeCount = button.querySelector(".like-count");
-      let count = parseInt(likeCount.textContent);
-      count++;
-      likeCount.textContent = count;
+      const commentIDTokens = button.parentElement.id.split("-");
       const response = await crud.updateLikeCount(
-        button.parentElement.id.split("-")[1] +
-        button.parentElement.id.split("-")[2]
-      );
+        `${commentIDTokens[1]}-${commentIDTokens[2]}`.replaceAll(/_/g, " "),
+        username, password);
+      if (response.error !== undefined) {
+        alert(response.error);
+        return;
+      }
+      await loadComments();
     });
   });
 
@@ -191,5 +192,5 @@ async function deleteThread(title) {
   else {
     alert("Post deleted");
   }
-  window.location.replace(`${crud.ORIGIN}`);
+  window.location.replace(crud.ORIGIN);
 }
