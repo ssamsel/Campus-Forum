@@ -173,6 +173,11 @@ async function createThread(request, response, options) {
     return;
   }
 
+  if (/\-/.test(post.title) || /_/.test(post.title)) {
+    await sendError(response, 400, "Title may not contain dashes nor underscores");
+    return;
+  }
+
   threads_db.put({
     _id: post.title,
     author: username,
