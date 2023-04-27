@@ -292,20 +292,18 @@ async function getComments(response, options) {
 }
 
 async function deleteThread(response, options) {
-  const data = JSON.parse(options.data);
-
-  const checkLogin = await loginValid(data.user, data.pw);
+  const checkLogin = await loginValid(options.user, options.pw);
   if (checkLogin !== true) {
     await sendError(response, 400, checkLogin);
     return;
   }
 
-  if (!(await threadExists(data.title))) {
+  if (!(await threadExists(options.title))) {
     await sendError(response, 400, "Post does not exist");
     return;
   }
 
-  await threads_db.remove(await threads_db.get(data.title));
+  await threads_db.remove(await threads_db.get(options.title));
   // TODO Remove comments too
 
   response.writeHead(200, headerFields);

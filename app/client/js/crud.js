@@ -66,8 +66,7 @@ export async function getComments(post) {
 // Deleted a thread with title title
 // User must be authenticated
 export async function deleteThread(username, password, title) {
-    const message = JSON.stringify({ user: username, pw: password, title: title });
-    const response = await fetch(`${ORIGIN}/server/deleteThread?data=${message}`,
+    const response = await fetch(`${ORIGIN}/server/deleteThread?user=${username}&pw=${pw}&title=${title}`,
         { method: 'DELETE' }
     );
     const data = await response.json();
