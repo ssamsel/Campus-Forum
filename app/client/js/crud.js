@@ -28,7 +28,7 @@ export async function logOut(username, password) {
 
 // Creates a new thread
 export async function createThread(username, password, post, image, hasImage) {
-    const message = JSON.stringify({ user: username, pw: password, postData: post, hasImage: hasImage});
+    const message = JSON.stringify({ user: username, pw: password, postData: post, hasImage: hasImage });
     const response = await fetch(`${ORIGIN}/server/createThread?data=${message}`,
         { method: 'POST', body: image }
     );
@@ -67,7 +67,7 @@ export async function getComments(post) {
 // User must be authenticated
 export async function deleteThread(username, password, title) {
     const message = JSON.stringify({ user: username, pw: password, title: title });
-    const response = await fetch(`${ORIGIN}/server/deleteThread?data=${message}`, 
+    const response = await fetch(`${ORIGIN}/server/deleteThread?data=${message}`,
         { method: 'DELETE' }
     );
     const data = await response.json();
@@ -75,9 +75,9 @@ export async function deleteThread(username, password, title) {
 }
 
 // Returns an array of all the thread objects
-export async function dumpThreads(){
-    const response = await fetch(`${ORIGIN}/server/dumpThreads`, 
-    {method: 'GET'}
+export async function dumpThreads() {
+    const response = await fetch(`${ORIGIN}/server/dumpThreads`,
+        { method: 'GET' }
     );
     const data = await response.json();
     return data;
@@ -86,16 +86,16 @@ export async function dumpThreads(){
 // Updates the like count for comment
 export async function updateLikeCount(comment) {
     const response = await fetch(`${ORIGIN}/server/updateLikeCount?comment=${comment}`,
-      { method: 'POST' }
+        { method: 'POST' }
     );
     const data = await response.json();
     return data;
 }
 
 // Returns a boolean on weather username is logged in
-export async function isLoggedIn(username){
-    const response = await fetch(`${ORIGIN}/server/isLoggedIn?user=${username}`, 
-    {method: 'GET'}
+export async function isLoggedIn(username) {
+    const response = await fetch(`${ORIGIN}/server/isLoggedIn?user=${username}`,
+        { method: 'GET' }
     );
     const data = await response.json();
     return data;

@@ -16,7 +16,7 @@ const accounts_db = new PouchDB(filePathPrefix + "/db/accounts");
 const threads_db = new PouchDB(filePathPrefix + "/db/threads");
 const comments_db = new PouchDB(filePathPrefix + "/db/comments");
 
-const accountsLoggedIn = {};
+const accountsLoggedIn = { Lorem: true };
 
 // This is to allow for accessing the server from the same IP origin
 // Will probably be modified once this is properly deployed
@@ -301,6 +301,7 @@ async function deleteThread(response, options) {
   // TODO Remove comments too
 
   response.writeHead(200, headerFields);
+  response.write(JSON.stringify({ success: "Deleted successfully" }));
   response.end();
 }
 

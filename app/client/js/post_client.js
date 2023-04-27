@@ -61,17 +61,7 @@ async function loadPost() {
     // Make delete function delete the thread
     document
       .getElementById("delete-thread")
-      .addEventListener("click", async (e) => {
-        const response = await crud.deleteThread(
-          username,
-          password,
-          postData.title
-        );
-        if (response.error !== undefined) {
-          alert(response.error);
-        }
-        location.reload();
-      });
+      .addEventListener("click", () => deleteThread(postData.title));
   }
 
   // Add image to page if this post has an image
@@ -134,7 +124,7 @@ function setCommentEventHandlers() {
       likeCount.textContent = count;
       const response = await crud.updateLikeCount(
         button.parentElement.id.split("-")[1] +
-          button.parentElement.id.split("-")[2]
+        button.parentElement.id.split("-")[2]
       );
     });
   });
@@ -188,4 +178,18 @@ function setCommentEventHandlers() {
         });
     });
   });
+}
+async function deleteThread(title) {
+  const response = await crud.deleteThread(
+    username,
+    password,
+    title
+  );
+  if (response.error !== undefined) {
+    alert(response.error);
+  }
+  else {
+    alert("Post deleted");
+  }
+  window.location.replace(`${crud.ORIGIN}`);
 }
