@@ -168,7 +168,7 @@ function setCommentEventHandlers() {
             password,
             text
           );
-          document.getElementById(`reply-${parentId}`).disabled = false;
+          //document.getElementById(`reply-${parentId}`).disabled = false;
           event.target.parentElement.remove();
 
           if (responseData.error !== undefined) {
