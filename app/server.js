@@ -199,6 +199,10 @@ async function createComment(response, options) {
     await sendError(response, 404, "Post not found.");
     return;
   }
+  if (options.text === "") {
+    await sendError(response, 400, "Comment cannot be empty");
+    return;
+  }
 
   const checkLogin = await loginValid(options.username, options.pw);
   if (checkLogin !== true) {
