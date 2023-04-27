@@ -28,8 +28,8 @@ export async function logOut(username, password) {
 
 // Creates a new thread
 export async function createThread(username, password, post, image, hasImage) {
-    const message = JSON.stringify({ user: username, pw: password, postData: post, hasImage: hasImage });
-    const response = await fetch(`${ORIGIN}/server/createThread?data=${message}`,
+    console.log(`?user=${username}&pw=${password}&postData=${JSON.stringify(post)}&hasImage=${hasImage}}`)
+    const response = await fetch(`${ORIGIN}/server/createThread?user=${username}&pw=${password}&postTitle=${post.title}&postText=${post.text}&hasImage=${hasImage}`,
         { method: 'POST', body: image }
     );
     const data = await response.json();

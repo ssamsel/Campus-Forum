@@ -136,20 +136,15 @@ function handleImageUpload(request) {
 }
 
 async function createThread(request, response, options) {
-  const data = JSON.parse(options.data);
-  const username = data.user;
-  const password = data.pw;
-  const post = data.postData;
-  const hasImage = data.hasImage;
+  const username = options.user;
+  const password = options.pw;
+  const postTitle = options.postTitle;
+  const postText = options.postText;
+  const hasImage = options.hasImage === 'true';
 
   const checkLogin = await loginValid(username, password);
   if (checkLogin !== true) {
     await sendError(response, 400, checkLogin);
-    return;
-  }
-
-  if (post === undefined) {
-    await sendError(response, 400, "Missing post in request");
     return;
   }
 
@@ -158,30 +153,30 @@ async function createThread(request, response, options) {
     return;
   }
 
-  if (post.title === "" || post.title === undefined) {
+  if (postTitle === "" || postTitle === undefined) {
     await sendError(response, 400, "A thread title is required");
     return;
   }
 
-  if (post.text === "" || post.text === undefined) {
+  if (postText === "" || postText === undefined) {
     await sendError(response, 400, "Thread body text is required");
     return;
   }
 
-  if (await threadExists(post.title)) {
-    await sendError(response, 400, `Title "${post.title}" taken`);
+  if (await threadExists(postTitle)) {
+    await sendError(response, 400, `Title "${postTitle}" taken`);
     return;
   }
 
-  if (/\-/.test(post.title) || /_/.test(post.title)) {
+  if (/\-/.test(postTitle) || /_/.test(postTitle)) {
     await sendError(response, 400, "Title may not contain dashes nor underscores");
     return;
   }
 
   threads_db.put({
-    _id: post.title,
+    _id: postTitle,
     author: username,
-    body: post.text,
+    body: postText,
     time: Date.now(),
     images: hasImage ? 1 : 0,
     imagePath: hasImage ? handleImageUpload(request) : undefined,
