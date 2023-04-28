@@ -4,7 +4,7 @@ import * as url from "url";
 import PouchDB from "pouchdb";
 import formidable from "formidable"; // For handling image uploads
 import { readFile } from "fs/promises";
-import { readFileSync } from "fs/promises";
+import { readFileSync } from "fs";
 import * as timeUtils from "./time.js";
 import { createHash } from "node:crypto";
 
