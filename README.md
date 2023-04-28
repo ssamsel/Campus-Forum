@@ -46,9 +46,12 @@ PouchDB and Formidable are required for this to work.
 Install them with by running the following in the root of this project:  
 `npm i --save pouchdb`  
 `npm i --save formidable`  
-Run the server by executing `node app/server.js <PORT>` from the repository root  
+Run the server by executing `node app/server.js` from the repository root  
+or specify a port with `node app/server.js -p <PORT>`   
+or run for deployment over https with `node app/server.js -d`  (put your keys in app/certs)   
 If you do not specify the port number it will use the default (3000).  
-Navigate to [127.0.0.1:3000](http://127.0.0.1:3000) in your web browser to see the home/forums page and use the application.
+Navigate to [127.0.0.1:3000](http://127.0.0.1:3000) in your web browser to see the home/forums page and use the application.  
+Sometimes Shymon will have this deployed and running on his server at [gutek.xyz](https://gutek.xyz)  
 ### License ###
 
 [Apache V2 License](https://opensource.org/license/apache-2-0/)

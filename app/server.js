@@ -1,12 +1,14 @@
 import * as http from "http";
+import * as https from "https";
 import * as url from "url";
 import PouchDB from "pouchdb";
 import formidable from "formidable"; // For handling image uploads
 import { readFile } from "fs/promises";
+import { readFileSync } from "fs";
 import * as timeUtils from "./time.js";
 import { createHash } from "node:crypto";
 
-const DEFAULT_PORT = 3000;
+const DEFAULT_PORT_LOCAL = 3000;
 
 // This is to ensure that no matter where the server is run from, the path is always valid
 // This regex removes the ending "server.js" and replaces it with the path to the requested resource
@@ -375,6 +377,12 @@ async function server(request, response) {
   const pathname = parsedURL.pathname;
   const method = request.method;
 
+  if (pathname.startsWith("/certs")) {
+    response.writeHead(403, headerFields);
+    response.end();
+    return;
+  }
+
   if (method === "OPTIONS") {
     response.writeHead(200, headerFields);
     response.end();
@@ -466,17 +474,55 @@ async function server(request, response) {
   }
 }
 
-// Start server on port from argv[1] or DEFAULT_PORT
-if (process.argv.length > 3) {
-  console.error(`Usage: node ${process.argv[1]} <port>`);
+function usageError() {
+  console.error(`Usage: node ${process.argv[1]}`);
+  console.error(`       node ${process.argv[1]} [-p port]`);
+  console.error(`       node ${process.argv[1]} [-d]`);
   process.exit(1);
 }
+
+// Parse arguments and perform appropriate task
+if (process.argv.length > 5) {
+  usageError();
+}
 if (process.argv.length === 2) {
-  http.createServer(server).listen(DEFAULT_PORT, () => {
-    console.log(`Started server at default port ${DEFAULT_PORT}`);
+  http.createServer(server).listen(DEFAULT_PORT_LOCAL, () => {
+    console.log(`Started http server at default port ${DEFAULT_PORT_LOCAL}`);
   });
-} else {
-  http.createServer(server).listen(parseInt(process.argv[2]), () => {
-    console.log(`Started server at specified port ${process.argv[2]}`);
-  });
+} else if (process.argv.length === 4) {
+  if (process.argv[2] === '-p') {
+    try {
+      http.createServer(server).listen(parseInt(process.argv[3]), () => {
+        console.log(`Started http server at specified port ${process.argv[3]}`);
+      });
+    }
+    catch {
+      usageError();
+    }
+  }
+  else {
+    usageError();
+  }
+}
+else if (process.argv.length === 3) {
+  if (process.argv[2] === '-d') {
+    https.createServer({
+      key: readFileSync(filePathPrefix + "/certs/private.key.pem"),
+      cert: readFileSync(filePathPrefix + "/certs/domain.cert.pem")
+    }, server).listen(parseInt(process.argv[2]), () => {
+      console.log(`Started https server at 443`);
+    });
+
+    // create an HTTP server on port 80 and redirect to HTTPS
+    http.createServer(function (req, res) {
+      console.log(`Redirecting request to https`);
+      res.writeHead(301, { "Location": "https://" + req.headers['host'] + req.url });
+      res.end();
+    }).listen(80, function (err) {
+      console.log("HTTP Server Listening on Port 80");
+    });
+  }
+  else {
+    usageError();
+  }
 }
