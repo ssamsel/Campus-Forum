@@ -82,7 +82,9 @@ loginButton.addEventListener('click', async (e) => {
         window.sessionStorage.clear();
         window.sessionStorage.setItem("user", username);
         window.sessionStorage.setItem("pw", password);
-        outputDiv.innerHTML = "<h1>" + response.success + "</h1><a href=/client/forums.html>Return to homepage</a>";
+        const urlParams = new URLSearchParams(window.location.search);
+        const previous = urlParams.has('prev') ? urlParams.get('prev') : "/";
+        outputDiv.innerHTML = "<h1>" + response.success + `</h1><a href="${previous}">Return to previous page</a>`;
         return;
     }
     outputDiv.innerHTML = "<h1>" + response.error + "</h1>";
