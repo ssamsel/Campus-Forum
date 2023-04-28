@@ -85,7 +85,7 @@ function generateCommentHTML(comment) {
       Like
     </button>
     <div style="display: inline-block; width: 50px"></div>
-    <button class="reply btn" id="reply-${comment._id}">
+    <button class="reply btn" id="reply-${comment._id.split("-")[0]}">
       <img class="comment" src="img/comment.png" /> Reply
     </button>
     <br><br>`;
@@ -143,8 +143,8 @@ function setCommentEventHandlers() {
         <textarea id="text-${parentId}" style="width: 100%" class="form-rounded" rows="7"
           placeholder="What are your thoughts?"></textarea>
         <br>
-        <button class="cancel_reply" id=cancel-${parentId} style="float: left" type="button" class="btn new-thread-button">Cancel</button>
-        <button class="comment_reply" id=post-${parentId} style="float: right" type="button" class="btn new-thread-button">Comment</button>
+        <button class="cancel_reply btn" id=cancel-${parentId} style="float: left" type="button" class="btn new-thread-button">Cancel</button>
+        <button class="comment_reply btn" id=post-${parentId} style="float: right" type="button" class="btn new-thread-button">Comment</button>
         <br><br>
       `;
       commentDiv.append(div);
@@ -159,7 +159,7 @@ function setCommentEventHandlers() {
       document
         .getElementById(`post-${parentId}`)
         .addEventListener("click", async function (event) {
-          const text = document.getElementById(`text-${parentId}-${postId}`).value;
+          const text = document.getElementById(`text-${parentId}`).value;
           const responseData = await crud.createComment(
             "false",
             postId,
@@ -168,7 +168,7 @@ function setCommentEventHandlers() {
             password,
             text
           );
-          //document.getElementById(`reply-${parentId}`).disabled = false;
+          document.getElementById(`reply-${parentId}`).disabled = false;
           event.target.parentElement.remove();
 
           if (responseData.error !== undefined) {

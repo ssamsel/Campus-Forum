@@ -214,7 +214,9 @@ a {
 }
 
 .reply,
-.like {
+.like,
+.cancel_reply,
+.comment_reply {
 	background-color: rgba(217, 217, 217, 0.25);
 	color: black;
 	width: 10%;
