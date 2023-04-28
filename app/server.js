@@ -493,7 +493,7 @@ if (process.argv.length === 2) {
   if (process.argv[2] === '-p') {
     try {
       http.createServer(server).listen(parseInt(process.argv[3]), () => {
-        console.log(`Started http server at specified port ${process.argv[2]}`);
+        console.log(`Started http server at specified port ${process.argv[3]}`);
       });
     }
     catch {
@@ -510,7 +510,7 @@ else if (process.argv.length === 3) {
       key: readFileSync(filePathPrefix + "/certs/private.key.pem"),
       cert: readFileSync(filePathPrefix + "/certs/domain.cert.pem")
     }, server).listen(parseInt(process.argv[2]), () => {
-      console.log(`Started server at 443`);
+      console.log(`Started https server at 443`);
     });
 
     // create an HTTP server on port 80 and redirect to HTTPS
