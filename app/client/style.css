@@ -212,3 +212,12 @@ a {
 .delete-div {
 	display: inline-block;
 }
+
+.reply,
+.like {
+	background-color: rgba(217, 217, 217, 0.25);
+	color: black;
+	width: 10%;
+	border-radius: 50px;
+	width: auto;
+}

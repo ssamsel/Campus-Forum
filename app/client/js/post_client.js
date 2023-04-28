@@ -79,13 +79,13 @@ function generateCommentHTML(comment) {
     <div class="vl"></div>
     <p class="comment-text">${comment.comment_body}</p>
     <br>
-    <button class="like" id="like-button">
+    <button class="like btn" id="like-button">
       <img class="comment" src="img/heart.png" /> 
       <span class="like-count">${comment.likes}</span>
       Like
     </button>
     <div style="display: inline-block; width: 50px"></div>
-    <button class="reply" id="reply-${comment._id}">
+    <button class="reply btn" id="reply-${comment._id}">
       <img class="comment" src="img/comment.png" /> Reply
     </button>
     <br><br>`;
