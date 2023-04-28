@@ -21,9 +21,13 @@ export async function integrateAuthUI() {
     // Synchronize server and client auth status if not logged in
     crud.logOut(username, window.sessionStorage.getItem("pw"));
     window.sessionStorage.clear();
+
+
+    // Change account name link so it will return to current forum
+    account_link.innerHTML = `<a href=/client/login.html?prev=${window.location.href}>Create Account/Login</a>`;
   }
 }
 
-export async function isAuthenticated(){
+export async function isAuthenticated() {
   return await crud.isLoggedIn(window.sessionStorage.getItem("user"));
 }

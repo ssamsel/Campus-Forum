@@ -159,7 +159,7 @@ function setCommentEventHandlers() {
       document
         .getElementById(`post-${parentId}`)
         .addEventListener("click", async function (event) {
-          const text = document.getElementById(`text-${parentId}`).value;
+          const text = document.getElementById(`text-${parentId}-${postId}`).value;
           const responseData = await crud.createComment(
             "false",
             postId,
