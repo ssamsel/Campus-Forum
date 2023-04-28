@@ -509,7 +509,7 @@ else if (process.argv.length === 3) {
     https.createServer({
       key: readFileSync(filePathPrefix + "/certs/private.key.pem"),
       cert: readFileSync(filePathPrefix + "/certs/domain.cert.pem")
-    }, server).listen(parseInt(process.argv[2]), () => {
+    }, server).listen(443), () => {
       console.log(`Started https server at 443`);
     });
 
