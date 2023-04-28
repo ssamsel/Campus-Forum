@@ -16,7 +16,7 @@ const accounts_db = new PouchDB(filePathPrefix + "/db/accounts");
 const threads_db = new PouchDB(filePathPrefix + "/db/threads");
 const comments_db = new PouchDB(filePathPrefix + "/db/comments");
 
-const accountsLoggedIn = {};
+const accountsLoggedIn = { lol123: true };
 
 // This is to allow for accessing the server from the same IP origin
 // Will probably be modified once this is properly deployed
@@ -53,6 +53,7 @@ async function createAccount(response, options) {
   await accounts_db.put({
     _id: username,
     pwHash: hashPassword(options[username]),
+    likes: [],
   });
   response.writeHead(200, headerFields);
   response.write(JSON.stringify({ success: "Account created" }));
@@ -101,6 +102,9 @@ async function loginValid(username, password) {
   if (username === null || password === null) {
     return "You must be logged in for this operation.";
   }
+  if (username === 'null' || password === 'null') {
+    return "You must be logged in for this operation.";
+  }
 
   if (
     !(await accountExists(username)) ||
@@ -132,20 +136,15 @@ function handleImageUpload(request) {
 }
 
 async function createThread(request, response, options) {
-  const data = JSON.parse(options.data);
-  const username = data.user;
-  const password = data.pw;
-  const post = data.postData;
-  const hasImage = data.hasImage;
+  const username = options.user;
+  const password = options.pw;
+  const postTitle = options.postTitle;
+  const postText = options.postText;
+  const hasImage = options.hasImage === 'true';
 
   const checkLogin = await loginValid(username, password);
   if (checkLogin !== true) {
     await sendError(response, 400, checkLogin);
-    return;
-  }
-
-  if (post === undefined) {
-    await sendError(response, 400, "Missing post in request");
     return;
   }
 
@@ -154,25 +153,30 @@ async function createThread(request, response, options) {
     return;
   }
 
-  if (post.title === "" || post.title === undefined) {
+  if (postTitle === "" || postTitle === undefined) {
     await sendError(response, 400, "A thread title is required");
     return;
   }
 
-  if (post.text === "" || post.text === undefined) {
+  if (postText === "" || postText === undefined) {
     await sendError(response, 400, "Thread body text is required");
     return;
   }
 
-  if (await threadExists(post.title)) {
-    await sendError(response, 400, `Title "${post.title}" taken`);
+  if (await threadExists(postTitle)) {
+    await sendError(response, 400, `Title "${postTitle}" taken`);
+    return;
+  }
+
+  if (/\-/.test(postTitle) || /_/.test(postTitle)) {
+    await sendError(response, 400, "Title may not contain dashes nor underscores");
     return;
   }
 
   threads_db.put({
-    _id: post.title,
+    _id: postTitle,
     author: username,
-    body: post.text,
+    body: postText,
     time: Date.now(),
     images: hasImage ? 1 : 0,
     imagePath: hasImage ? handleImageUpload(request) : undefined,
@@ -188,6 +192,10 @@ async function createThread(request, response, options) {
 async function createComment(response, options) {
   if (!(await threadExists(options.post_id))) {
     await sendError(response, 404, "Post not found.");
+    return;
+  }
+  if (options.text === "") {
+    await sendError(response, 400, "Comment cannot be empty");
     return;
   }
 
@@ -284,23 +292,22 @@ async function getComments(response, options) {
 }
 
 async function deleteThread(response, options) {
-  const data = JSON.parse(options.data);
-
-  const checkLogin = await loginValid(data.user, data.pw);
+  const checkLogin = await loginValid(options.user, options.pw);
   if (checkLogin !== true) {
     await sendError(response, 400, checkLogin);
     return;
   }
 
-  if (!(await threadExists(data.title))) {
+  if (!(await threadExists(options.title))) {
     await sendError(response, 400, "Post does not exist");
     return;
   }
 
-  await threads_db.remove(await threads_db.get(data.title));
+  await threads_db.remove(await threads_db.get(options.title));
   // TODO Remove comments too
 
   response.writeHead(200, headerFields);
+  response.write(JSON.stringify({ success: "Deleted successfully" }));
   response.end();
 }
 
@@ -328,14 +335,26 @@ async function dumpThreads(response, options) {
 }
 
 async function updateLikeCount(response, options) {
-  const checkLogin = await loginValid(options.username, options.pw);
-
+  const checkLogin = await loginValid(options.user, options.pw);
   if (checkLogin !== true) {
     await sendError(response, 400, checkLogin);
     return;
   }
+
+
+
   comments_db.get(options.comment).then(async function (doc) {
-    doc.likes++;
+    const userDoc = await accounts_db.get(options.user);
+
+    if (userDoc.likes.some(x => x === options.comment)) {
+      --doc.likes;
+      userDoc.likes.splice(userDoc.likes.indexOf(options.comment), 1);
+    }
+    else {
+      ++doc.likes;
+      userDoc.likes.push(options.comment);
+    }
+    await accounts_db.put(userDoc, { _rev: userDoc.rev, force: true });
     await comments_db.put(doc, { _rev: doc.rev, force: true });
   });
 

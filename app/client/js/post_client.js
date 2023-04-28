@@ -61,17 +61,7 @@ async function loadPost() {
     // Make delete function delete the thread
     document
       .getElementById("delete-thread")
-      .addEventListener("click", async (e) => {
-        const response = await crud.deleteThread(
-          username,
-          password,
-          postData.title
-        );
-        if (response.error !== undefined) {
-          alert(response.error);
-        }
-        location.reload();
-      });
+      .addEventListener("click", () => deleteThread(postData.title));
   }
 
   // Add image to page if this post has an image
@@ -83,7 +73,7 @@ async function loadPost() {
 
 // Creates the html for comment and puts it in the page
 function generateCommentHTML(comment) {
-  let commentHTML = `<div id = comment-${comment._id}>
+  let commentHTML = `<div id = comment-${comment._id.replaceAll(/ /g, "_")}>
     <p class="medium-text">${comment.author}</p>
     <p class="small-text">${comment.time}</p>
     <div class="vl"></div>
@@ -128,14 +118,15 @@ function setCommentEventHandlers() {
   const likeButtons = document.querySelectorAll("#like-button");
   likeButtons.forEach((button) => {
     button.addEventListener("click", async () => {
-      const likeCount = button.querySelector(".like-count");
-      let count = parseInt(likeCount.textContent);
-      count++;
-      likeCount.textContent = count;
+      const commentIDTokens = button.parentElement.id.split("-");
       const response = await crud.updateLikeCount(
-        button.parentElement.id.split("-")[1] +
-          button.parentElement.id.split("-")[2]
-      );
+        `${commentIDTokens[1]}-${commentIDTokens[2]}`.replaceAll(/_/g, " "),
+        username, password);
+      if (response.error !== undefined) {
+        alert(response.error);
+        return;
+      }
+      await loadComments();
     });
   });
 
@@ -177,7 +168,7 @@ function setCommentEventHandlers() {
             password,
             text
           );
-          document.getElementById(`reply-${parentId}`).disabled = false;
+          //document.getElementById(`reply-${parentId}`).disabled = false;
           event.target.parentElement.remove();
 
           if (responseData.error !== undefined) {
@@ -188,4 +179,18 @@ function setCommentEventHandlers() {
         });
     });
   });
+}
+async function deleteThread(title) {
+  const response = await crud.deleteThread(
+    username,
+    password,
+    title
+  );
+  if (response.error !== undefined) {
+    alert(response.error);
+  }
+  else {
+    alert("Post deleted");
+  }
+  window.location.replace(crud.ORIGIN);
 }
