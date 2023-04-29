@@ -3,6 +3,8 @@ export const ORIGIN = window.location.origin;
 
 // Logs in the user on server-side
 export async function logIn(username, password) {
+    username = encodeURIComponent(username);
+    password = encodeURIComponent(password);
     const response = await fetch(`${ORIGIN}/server/login?${username}=${password}`,
         { method: 'POST' }
     );
@@ -12,6 +14,8 @@ export async function logIn(username, password) {
 
 // Creates a new account
 export async function createAccount(username, password) {
+    username = encodeURIComponent(username);
+    password = encodeURIComponent(password);
     const response = await fetch(`${ORIGIN}/server/createAccount?${username}=${password}`,
         { method: 'PUT' }
     );
@@ -21,6 +25,8 @@ export async function createAccount(username, password) {
 
 // Logs out the user
 export async function logOut(username, password) {
+    username = encodeURIComponent(username);
+    password = encodeURIComponent(password);
     const response = await fetch(`${ORIGIN}/server/logout?${username}=${password}`,
         { method: 'POST' }
     );
@@ -28,8 +34,11 @@ export async function logOut(username, password) {
 
 // Creates a new thread
 export async function createThread(username, password, post, image, hasImage) {
-    console.log(`?user=${username}&pw=${password}&postData=${JSON.stringify(post)}&hasImage=${hasImage}}`)
-    const response = await fetch(`${ORIGIN}/server/createThread?user=${username}&pw=${password}&postTitle=${post.title}&postText=${post.text}&hasImage=${hasImage}`,
+    username = encodeURIComponent(username);
+    password = encodeURIComponent(password);
+    const text = encodeURIComponent(post.text);
+    const title = encodeURIComponent(post.title);
+    const response = await fetch(`${ORIGIN}/server/createThread?user=${username}&pw=${password}&postTitle=${title}&postText=${text}&hasImage=${hasImage}`,
         { method: 'POST', body: image }
     );
     const data = await response.json();
@@ -38,6 +47,7 @@ export async function createThread(username, password, post, image, hasImage) {
 
 // Returns a specific thread object
 export async function getThread(post) {
+    post = encodeURIComponent(post);
     const response = await fetch(`${ORIGIN}/server/getThread?post_id=${post}`,
         { method: 'GET' }
     );
@@ -47,6 +57,12 @@ export async function getThread(post) {
 
 // Posts a comment
 export async function createComment(post_parent, post_id, parent_id, username, password, text) {
+    post_parent = encodeURIComponent(post_parent);
+    post_id = encodeURIComponent(post_id);
+    parent_id = encodeURIComponent(parent_id);
+    username = encodeURIComponent(username);
+    password = encodeURIComponent(password);
+    text = encodeURIComponent(text);
     const response = await fetch(`${ORIGIN}/server/createComment?post_id=${post_id}&post_parent=${post_parent}&parent_id=${parent_id}&username=${username}&pw=${password}&text=${text}`,
         { method: 'POST' }
     );
@@ -56,6 +72,7 @@ export async function createComment(post_parent, post_id, parent_id, username, p
 
 // Returns list of comment objects for post
 export async function getComments(post) {
+    post = encodeURIComponent(post);
     const response = await fetch(`${ORIGIN}/server/getComments?post_id=${post}`,
         { method: 'GET' }
     );
@@ -66,6 +83,9 @@ export async function getComments(post) {
 // Deleted a thread with title title
 // User must be authenticated
 export async function deleteThread(username, password, title) {
+    username = encodeURIComponent(username);
+    password = encodeURIComponent(password);
+    title = encodeURIComponent(title);
     const response = await fetch(`${ORIGIN}/server/deleteThread?user=${username}&pw=${password}&title=${title}`,
         { method: 'DELETE' }
     );
@@ -84,6 +104,9 @@ export async function dumpThreads() {
 
 // Updates the like count for comment
 export async function updateLikeCount(comment, username, password) {
+    username = encodeURIComponent(username);
+    password = encodeURIComponent(password);
+    comment = encodeURIComponent(comment);
     const response = await fetch(`${ORIGIN}/server/updateLikeCount?comment=${comment}&user=${username}&pw=${password}`,
         { method: 'POST' }
     );
@@ -93,6 +116,7 @@ export async function updateLikeCount(comment, username, password) {
 
 // Returns a boolean on weather username is logged in
 export async function isLoggedIn(username) {
+    username = encodeURIComponent(username);
     const response = await fetch(`${ORIGIN}/server/isLoggedIn?user=${username}`,
         { method: 'GET' }
     );
