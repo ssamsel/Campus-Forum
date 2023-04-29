@@ -104,3 +104,9 @@ dist
 .tern-port
 
 .DS_Store
+
+# SSL Certs
+app/certs/**
+
+# Databases 
+app/db/**
