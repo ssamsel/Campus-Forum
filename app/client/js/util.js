@@ -24,7 +24,7 @@ export async function integrateAuthUI() {
 
 
     // Change account name link so it will return to current forum
-    account_link.innerHTML = `<a href=/client/login.html?prev=${window.location.href}>Create Account/Login</a>`;
+    account_link.innerHTML = `<a href=/client/login.html?prev=${encodeURIComponent(window.location.href)}>Create Account/Login</a>`;
   }
 }
 
