@@ -209,9 +209,8 @@ async function createComment(response, options) {
 
   const post = await threads_db.get(options.post_id);
   const commentId = post.posts.toString() + "-" + options.post_id;
-  console.log(commentId);
-  console.log(options);
   post.posts++;
+  post.time = Date.now();
   await threads_db.put(post, { _rev: post._rev, force: true });
 
   if (options.post_parent === "true") {
@@ -305,8 +304,15 @@ async function deleteThread(response, options) {
     return;
   }
 
-  await threads_db.remove(await threads_db.get(options.title));
-  // TODO Remove comments too
+  const doc = await threads_db.get(options.title);
+  const comments = await comments_db.allDocs({include_docs: true});
+  comments.rows.forEach(async comment => {
+    const re = new RegExp(`^\\d+\-${doc._id}$`);
+    if (re.test(comment.id)){
+      await comments_db.remove(await comments_db.get(comment.id));
+    }
+  });
+  await threads_db.remove(doc);
 
   response.writeHead(200, headerFields);
   response.write(JSON.stringify({ success: "Deleted successfully" }));
