@@ -104,7 +104,7 @@ async function loginValid(username, password) {
   if (username === null || password === null) {
     return "You must be logged in for this operation.";
   }
-  if (username === 'null' || password === 'null') {
+  if (username === "null" || password === "null") {
     return "You must be logged in for this operation.";
   }
 
@@ -142,7 +142,7 @@ async function createThread(request, response, options) {
   const password = options.pw;
   const postTitle = options.postTitle;
   const postText = options.postText;
-  const hasImage = options.hasImage === 'true';
+  const hasImage = options.hasImage === "true";
 
   const checkLogin = await loginValid(username, password);
   if (checkLogin !== true) {
@@ -171,7 +171,11 @@ async function createThread(request, response, options) {
   }
 
   if (/\-/.test(postTitle) || /_/.test(postTitle)) {
-    await sendError(response, 400, "Title may not contain dashes nor underscores");
+    await sendError(
+      response,
+      400,
+      "Title may not contain dashes nor underscores"
+    );
     return;
   }
 
@@ -305,10 +309,10 @@ async function deleteThread(response, options) {
   }
 
   const doc = await threads_db.get(options.title);
-  const comments = await comments_db.allDocs({include_docs: true});
-  comments.rows.forEach(async comment => {
+  const comments = await comments_db.allDocs({ include_docs: true });
+  comments.rows.forEach(async (comment) => {
     const re = new RegExp(`^\\d+\-${doc._id}$`);
-    if (re.test(comment.id)){
+    if (re.test(comment.id)) {
       await comments_db.remove(await comments_db.get(comment.id));
     }
   });
@@ -349,16 +353,13 @@ async function updateLikeCount(response, options) {
     return;
   }
 
-
-
   comments_db.get(options.comment).then(async function (doc) {
     const userDoc = await accounts_db.get(options.user);
 
-    if (userDoc.likes.some(x => x === options.comment)) {
+    if (userDoc.likes.some((x) => x === options.comment)) {
       --doc.likes;
       userDoc.likes.splice(userDoc.likes.indexOf(options.comment), 1);
-    }
-    else {
+    } else {
       ++doc.likes;
       userDoc.likes.push(options.comment);
     }
@@ -374,6 +375,13 @@ async function updateLikeCount(response, options) {
 async function isLoggedIn(response, options) {
   response.writeHead(200, headerFields);
   response.write(JSON.stringify(options.user in accountsLoggedIn));
+  response.end();
+}
+
+async function deleteComment(response, options){
+  // TODO this method is incomplete
+  response.writeHead(200, headerFields);
+  response.write(JSON.stringify({error: "Not yet implemented"}));
   response.end();
 }
 
@@ -446,6 +454,10 @@ async function server(request, response) {
     isLoggedIn(response, options);
     return;
   }
+  if (method === "DELETE" && pathname.startsWith("/server/deleteComment")) {
+    deleteComment(response, options);
+    return;
+  }
 
   if (method === "GET" && !pathname.startsWith("/server")) {
     if (pathname === "/") {
@@ -496,39 +508,44 @@ if (process.argv.length === 2) {
     console.log(`Started http server at default port ${DEFAULT_PORT_LOCAL}`);
   });
 } else if (process.argv.length === 4) {
-  if (process.argv[2] === '-p') {
+  if (process.argv[2] === "-p") {
     try {
       http.createServer(server).listen(parseInt(process.argv[3]), () => {
         console.log(`Started http server at specified port ${process.argv[3]}`);
       });
-    }
-    catch {
+    } catch {
       usageError();
     }
-  }
-  else {
+  } else {
     usageError();
   }
-}
-else if (process.argv.length === 3) {
-  if (process.argv[2] === '-d') {
-    https.createServer({
-      key: readFileSync(filePathPrefix + "/certs/private.key.pem"),
-      cert: readFileSync(filePathPrefix + "/certs/domain.cert.pem")
-    }, server).listen(443, () => {
-      console.log(`Started https server at 443`);
-    });
+} else if (process.argv.length === 3) {
+  if (process.argv[2] === "-d") {
+    https
+      .createServer(
+        {
+          key: readFileSync(filePathPrefix + "/certs/private.key.pem"),
+          cert: readFileSync(filePathPrefix + "/certs/domain.cert.pem"),
+        },
+        server
+      )
+      .listen(443, () => {
+        console.log(`Started https server at 443`);
+      });
 
     // create an HTTP server on port 80 and redirect to HTTPS
-    http.createServer(function (req, res) {
-      console.log(`Redirecting request to https`);
-      res.writeHead(301, { "Location": "https://" + req.headers['host'] + req.url });
-      res.end();
-    }).listen(80, function (err) {
-      console.log("HTTP Server Listening on Port 80");
-    });
-  }
-  else {
+    http
+      .createServer(function (req, res) {
+        console.log(`Redirecting request to https`);
+        res.writeHead(301, {
+          Location: "https://" + req.headers["host"] + req.url,
+        });
+        res.end();
+      })
+      .listen(80, function (err) {
+        console.log("HTTP Server Listening on Port 80");
+      });
+  } else {
     usageError();
   }
 }
