@@ -123,3 +123,15 @@ export async function isLoggedIn(username) {
     const data = await response.json();
     return data;
 }
+
+export async function deleteComment(commentID, username, password){
+    username = encodeURIComponent(username);
+    password = encodeURIComponent(password);
+    commentID = encodeURIComponent(commentID);
+
+    const response = await fetch(`${ORIGIN}/server/deleteComment?user=${username}&pw=${password}&comment=${commentID}`,
+    {method: 'DELETE'}
+    );
+    const data = await response.json();
+    return data;
+}

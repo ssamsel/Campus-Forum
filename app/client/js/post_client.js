@@ -88,6 +88,10 @@ function generateCommentHTML(comment) {
     <button class="reply btn" id="reply-${comment._id.split("-")[0]}">
       <img class="comment" src="img/comment.png" /> Reply
     </button>
+    <button class="delete-comment btn" id="delete-${comment._id.replaceAll(
+      / /g,
+      "_"
+    )}" hidden="hidden">${comment.author}</button>
     <br><br>`;
 
   if (comment.children.length > 0) {
@@ -121,7 +125,9 @@ function setCommentEventHandlers() {
       const commentIDTokens = button.parentElement.id.split("-");
       const response = await crud.updateLikeCount(
         `${commentIDTokens[1]}-${commentIDTokens[2]}`.replaceAll(/_/g, " "),
-        username, password);
+        username,
+        password
+      );
       if (response.error !== undefined) {
         alert(response.error);
         return;
@@ -179,17 +185,29 @@ function setCommentEventHandlers() {
         });
     });
   });
+  document.querySelectorAll(".delete-comment").forEach((button) => {
+    if (button.innerText !== username) {
+      return;
+    }
+    button.innerText = "Delete";
+    button.hidden = false;
+    button.addEventListener("click", async () => {
+      const splits = button.id.split("-");
+      const response = await crud.deleteComment(`${splits[1]}-${splits[2]}`, username, password);
+      if (response.error !== undefined){
+        window.alert(response.error);
+        return;
+      }
+      window.alert(response.success);
+      await loadComments();
+    });
+  });
 }
 async function deleteThread(title) {
-  const response = await crud.deleteThread(
-    username,
-    password,
-    title
-  );
+  const response = await crud.deleteThread(username, password, title);
   if (response.error !== undefined) {
     alert(response.error);
-  }
-  else {
+  } else {
     alert("Post deleted");
   }
   window.location.replace(crud.ORIGIN);
