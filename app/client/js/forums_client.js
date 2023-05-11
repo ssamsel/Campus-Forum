@@ -31,7 +31,7 @@ if (totalPages === 1){
 }
 else {
   if (page > 1){
-    locationHtml += `<a href="${path}?page=${page - 1}&amount=${amount}}">Prev</a> `;
+    locationHtml += `<a href="${path}?page=${page - 1}&amount=${amount}">Prev</a> `;
   }
   locationHtml += `<b>${page}</b> `;
   if (page < totalPages){
