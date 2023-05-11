@@ -113,5 +113,5 @@ submit_button.addEventListener("click", async (e) => {
     return;
   }
   output_div.innerHTML = `<h1>${response.success}</h1>`;
-  location.reload();
+  window.location.reload();
 });
