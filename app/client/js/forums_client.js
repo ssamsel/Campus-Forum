@@ -24,7 +24,7 @@ const amount = results_per_page.value;
 // Set the location link
 const path = window.location.pathname;
 const numThreads = await crud.numThreads();
-const totalPages = amount === "All" ? 1 : Math.ceil(numThreads / amount);
+const totalPages = amount === "All" ? 1 : Math.ceil(numThreads / parseInt(amount));
 let locationHtml = "Home > ";
 if (totalPages === 1){
   locationHtml += "<b>Newest</b>";
