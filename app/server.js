@@ -332,7 +332,7 @@ async function dumpThreads(response, options) {
   threads.sort(timeUtils.compare);
   if (amount !== undefined && page != undefined && amount !== "All"){
     const amt = parseInt(amount);
-    const pg = parent(page) - 1;
+    const pg = parseInt(page) - 1;
     threads = threads.slice(pg * amt, page * amt + amt);
   }
 

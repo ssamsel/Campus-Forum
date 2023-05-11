@@ -95,7 +95,7 @@ export async function deleteThread(username, password, title) {
 
 // Returns an array of all the thread objects
 export async function dumpThreads(page, amount) {
-    const response = await fetch(`${ORIGIN}/server/dumpThreads?page=${page}$amount=${amount}`,
+    const response = await fetch(`${ORIGIN}/server/dumpThreads?page=${page}&amount=${amount}`,
         { method: 'GET' }
     );
     const data = await response.json();
