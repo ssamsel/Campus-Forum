@@ -53,8 +53,12 @@ async function loadPost() {
   // Creates the navigation link at the top of page
   const urlParams = new URLSearchParams(window.location.search);
   const page = urlParams.has("page") ? urlParams.get("page") : "1";
-  const link = urlParams.has("amount") ? `/client/forums.html?page=${page}&amount=${urlParams.get("amount")}` : `/client/forums.html?page=${page}&amount=4`;
-  navigation.innerHTML = `<a href="${link}">Home > ${page === "1" ? "Newest" : page} > </a> ${postData.title}`;
+  const link = urlParams.has("amount")
+    ? `/client/forums.html?page=${page}&amount=${urlParams.get("amount")}`
+    : `/client/forums.html?page=${page}&amount=4`;
+  navigation.innerHTML = `<a href="${link}">Home > ${
+    page === "1" ? "Newest" : page
+  } > </a> ${postData.title}`;
 
   // Add delete button if user is authenticated and is the post creator
   if ((await Util.isAuthenticated()) && postData.author === username) {
