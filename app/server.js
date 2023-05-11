@@ -327,7 +327,7 @@ async function dumpThreads(response, options) {
   const allDocs = await threads_db.allDocs({ include_docs: true });
   let threads = [];
   const amount = options.amount;
-  const page = options.amount;
+  const page = options.page;
   allDocs.rows.forEach((x) => threads.push(x.doc));
   threads.sort(timeUtils.compare);
   if (amount !== undefined && page != undefined && amount !== "All"){
