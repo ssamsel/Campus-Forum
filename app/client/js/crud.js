@@ -94,8 +94,8 @@ export async function deleteThread(username, password, title) {
 }
 
 // Returns an array of all the thread objects
-export async function dumpThreads() {
-    const response = await fetch(`${ORIGIN}/server/dumpThreads`,
+export async function dumpThreads(page, amount) {
+    const response = await fetch(`${ORIGIN}/server/dumpThreads?page=${page}&amount=${amount}`,
         { method: 'GET' }
     );
     const data = await response.json();
@@ -132,6 +132,12 @@ export async function deleteComment(commentID, username, password){
     const response = await fetch(`${ORIGIN}/server/deleteComment?user=${username}&pw=${password}&comment=${commentID}`,
     {method: 'DELETE'}
     );
+    const data = await response.json();
+    return data;
+}
+
+export async function numThreads(){
+    const response = await fetch(`${ORIGIN}/server/numThreads`, {method: 'GET'});
     const data = await response.json();
     return data;
 }

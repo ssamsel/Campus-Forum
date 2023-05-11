@@ -30,10 +30,12 @@ commentButton.addEventListener("click", async function (event) {
     password,
     text
   );
-  if (responseData.error !== undefined) {
-    alert(responseData.error);
+  if (responseData.error === undefined) {
+    newPostTextBox.value = "";
+    await loadComments();
+    return;
   }
-  await loadComments();
+  alert(responseData.error);
 });
 
 // Loads the thread/forum for the page
@@ -51,7 +53,14 @@ async function loadPost() {
   post.innerText = postData.post_body;
 
   // Creates the navigation link at the top of page
-  navigation.innerHTML = `<a href="/">Home > Newest > </a> ${postData.title}`;
+  const urlParams = new URLSearchParams(window.location.search);
+  const page = urlParams.has("page") ? urlParams.get("page") : "1";
+  const link = urlParams.has("amount")
+    ? `/client/forums.html?page=${page}&amount=${urlParams.get("amount")}`
+    : `/client/forums.html?page=${page}&amount=4`;
+  navigation.innerHTML = `<a href="${link}">Home > ${
+    page === "1" ? "Newest" : page
+  } > </a> ${postData.title}`;
 
   // Add delete button if user is authenticated and is the post creator
   if ((await Util.isAuthenticated()) && postData.author === username) {
@@ -193,8 +202,12 @@ function setCommentEventHandlers() {
     button.hidden = false;
     button.addEventListener("click", async () => {
       const splits = button.id.split("-");
-      const response = await crud.deleteComment(`${splits[1]}-${splits[2]}`, username, password);
-      if (response.error !== undefined){
+      const response = await crud.deleteComment(
+        `${splits[1]}-${splits[2]}`,
+        username,
+        password
+      );
+      if (response.error !== undefined) {
         window.alert(response.error);
         return;
       }
