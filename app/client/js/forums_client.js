@@ -76,7 +76,7 @@ dumpedThreads.forEach((x, idx) => {
   const template = `<div class="container-fluid forum ${last}">
         <div class="w-50"><a href="${
           crud.ORIGIN
-        }/client/post.html?title=${encodeURIComponent(x.title)}">${
+        }/client/post.html?title=${encodeURIComponent(x.title)}&page=${page}&amount=${amount}">${
     x.title
   }</a></div>
         <div class="col-sm row-item">
