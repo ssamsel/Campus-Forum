@@ -21,7 +21,7 @@
     </p>
     <br><br>
     <div>
-      <p style="float: left" class="small-text">Home > newest</p><input type="text" style="float: right"
+      <p style="float: left" class="small-text" id="location">Home > newest</p><input type="text" style="float: right"
         class="form-control form-rounded w-25" placeholder="Search here...">
     </div>
     <br><br><br>
@@ -32,6 +32,15 @@
       <div class="col-sm row-item">Last Post</div>
     </div>
     <div id="threads"></div>
+    <div class="m-3 small-text">
+      <label for="count">Results per page:</label>
+      <select id="count">
+        <option>4</option>
+        <option>6</option>
+        <option>8</option>
+        <option>All</option>
+      </select>
+    </div>
   </div>
 
   <div class="m-5">

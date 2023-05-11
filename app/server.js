@@ -325,9 +325,17 @@ async function deleteThread(response, options) {
 
 async function dumpThreads(response, options) {
   const allDocs = await threads_db.allDocs({ include_docs: true });
-  const threads = [];
+  let threads = [];
+  const amount = options.amount;
+  const page = options.amount;
   allDocs.rows.forEach((x) => threads.push(x.doc));
   threads.sort(timeUtils.compare);
+  if (amount !== undefined && page != undefined && amount !== "All"){
+    const amt = parseInt(amount);
+    const pg = parent(page) - 1;
+    threads = threads.slice(pg * amt, page * amt + amt);
+  }
+
   response.writeHead(200, headerFields);
   response.write(
     JSON.stringify(
@@ -343,6 +351,13 @@ async function dumpThreads(response, options) {
       })
     )
   );
+  response.end();
+}
+
+async function numThreads(response, options){
+  const allDocs = await threads_db.allDocs({ include_docs: true });
+  response.writeHead(200, headerFields);
+  response.write(JSON.stringify(allDocs.total_rows));
   response.end();
 }
 
@@ -456,6 +471,10 @@ async function server(request, response) {
   }
   if (method === "DELETE" && pathname.startsWith("/server/deleteComment")) {
     deleteComment(response, options);
+    return;
+  }
+  if (method === "GET" && pathname.startsWith("/server/numThreads")){
+    numThreads(response, options);
     return;
   }
 
