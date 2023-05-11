@@ -116,5 +116,7 @@ submit_button.addEventListener("click", async (e) => {
     return;
   }
   output_div.innerHTML = `<h1>${response.success}</h1>`;
+  create_post_title.value = "";
+  create_post_text.value = "";
   window.location.reload();
 });

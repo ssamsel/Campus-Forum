@@ -30,10 +30,12 @@ commentButton.addEventListener("click", async function (event) {
     password,
     text
   );
-  if (responseData.error !== undefined) {
-    alert(responseData.error);
+  if (responseData.error === undefined) {
+    newPostTextBox.value = "";
+    await loadComments();
+    return;
   }
-  await loadComments();
+  alert(responseData.error);
 });
 
 // Loads the thread/forum for the page
