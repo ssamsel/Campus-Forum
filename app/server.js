@@ -330,10 +330,10 @@ async function dumpThreads(response, options) {
   const page = options.page;
   allDocs.rows.forEach((x) => threads.push(x.doc));
   threads.sort(timeUtils.compare);
-  if (amount !== undefined && page != undefined && amount !== "All"){
+  if (amount !== undefined && page != undefined && amount !== "All") {
     const amt = parseInt(amount);
     const pg = parseInt(page) - 1;
-    threads = threads.slice(pg * amt, page * amt + amt);
+    threads = threads.slice(pg * amt, pg * amt + amt);
   }
 
   response.writeHead(200, headerFields);
@@ -354,7 +354,7 @@ async function dumpThreads(response, options) {
   response.end();
 }
 
-async function numThreads(response, options){
+async function numThreads(response, options) {
   const allDocs = await threads_db.allDocs({ include_docs: true });
   response.writeHead(200, headerFields);
   response.write(JSON.stringify(allDocs.total_rows));
@@ -393,10 +393,10 @@ async function isLoggedIn(response, options) {
   response.end();
 }
 
-async function deleteComment(response, options){
+async function deleteComment(response, options) {
   // TODO this method is incomplete
   response.writeHead(200, headerFields);
-  response.write(JSON.stringify({error: "Not yet implemented"}));
+  response.write(JSON.stringify({ error: "Not yet implemented" }));
   response.end();
 }
 
@@ -473,7 +473,7 @@ async function server(request, response) {
     deleteComment(response, options);
     return;
   }
-  if (method === "GET" && pathname.startsWith("/server/numThreads")){
+  if (method === "GET" && pathname.startsWith("/server/numThreads")) {
     numThreads(response, options);
     return;
   }

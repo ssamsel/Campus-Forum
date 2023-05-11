@@ -16,8 +16,13 @@ const password = window.sessionStorage.getItem("pw");
 // Add logout button and display username on top right if user logged in;
 Util.integrateAuthUI();
 
-// Get the current page number and results per page
+// create a URL parameter object to use for various paging functionality
 const urlParams = new URLSearchParams(window.location.search);
+
+// Set the results per page select form
+results_per_page.value = urlParams.has("amount") ? urlParams.get("amount") : results_per_page.value;
+
+// Get the current page number and results per page
 const page = urlParams.has("page") ? parseInt(urlParams.get("page")) : 1;
 const amount = results_per_page.value;
 
@@ -33,15 +38,13 @@ else {
   if (page > 1){
     locationHtml += `<a href="${path}?page=${page - 1}&amount=${amount}">Prev</a> `;
   }
-  locationHtml += `<b>${page}</b> `;
+  locationHtml += `<b>${page === 1 ? "Newest" : page}</b> `;
   if (page < totalPages){
     locationHtml += `<a href="${path}?page=${page + 1}&amount=${amount}">Next</a>`;
   }
 }
 location.innerHTML = locationHtml;
 
-// Set the results per page select form
-results_per_page.value = urlParams.has("amount") ? urlParams.get("amount") : results_per_page.value;
 
 // Refresh when rpp changes
 results_per_page.addEventListener("change", () => {
