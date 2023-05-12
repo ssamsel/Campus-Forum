@@ -46,7 +46,7 @@ dumpedThreads.forEach((x, idx) => {
         </div>
         <div class="col-sm row-item">
           <p class="small-text">${x.time}</p>
-          <div class="author-div">
+          <div class="author-div" onclick='window.location.href = "${crud.ORIGIN}/client/profile.html?author=${x.author}"'>
             <img class="avatar" src="img/avatar.png" />
             ${x.author}
           </div>
