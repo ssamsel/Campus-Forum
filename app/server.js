@@ -346,6 +346,31 @@ async function dumpThreads(response, options) {
   response.end();
 }
 
+
+async function dumpThreadsByAuthor(request, response, options) {
+  const requestAuthor = options.author;
+  const allDocs = await threads_db.allDocs({ include_docs: true });
+  const threads = [];
+  allDocs.rows.forEach((x) => threads.push(x.doc));
+  threads.sort(timeUtils.compare);
+  response.writeHead(200, headerFields);
+  response.write(
+      JSON.stringify(
+          threads.map((x) => {
+            return {
+              author: x.author,
+              title: x._id,
+              body: x.body,
+              time: timeUtils.convertToRecencyString(x.time),
+              images: x.images,
+              posts: x.posts,
+            };
+          }).filter((x) => x.author === requestAuthor)
+      )
+  );
+  response.end();
+}
+
 async function updateLikeCount(response, options) {
   const checkLogin = await loginValid(options.user, options.pw);
   if (checkLogin !== true) {
@@ -440,6 +465,10 @@ async function server(request, response) {
 
   if (method === "DELETE" && pathname.startsWith("/server/deleteThread")) {
     deleteThread(response, options);
+    return;
+  }
+  if (method === "GET" && pathname.startsWith("/server/dumpThreadsByAuthor")) {
+    dumpThreadsByAuthor(request, response, options);
     return;
   }
   if (method === "GET" && pathname.startsWith("/server/dumpThreads")) {
