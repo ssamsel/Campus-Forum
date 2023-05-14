@@ -42,15 +42,12 @@ The four types of data our application will use are:
 4. Posts about official events can advertise times and locations and will allow other users to press a button to RSVP. This will serve as a way to limit attendees and communicate interest in a specific event to others on campus as well as event organizers.
 
 ### How to Start App ###
-PouchDB and Formidable are required for this to work.  
+Express, Express-FileUpload, and PouchDB are required for this to work.  
 Install them with by running the following in the root of this project:  
-`npm i --save pouchdb`  
-`npm i --save formidable`  
-Run the server by executing `node app/server.js` from the repository root  
-or specify a port with `node app/server.js -p <PORT>`   
-or run for deployment over https with `node app/server.js -d`  (put your keys in app/certs)   
-If you do not specify the port number it will use the default (3000).  
-Navigate to [127.0.0.1:3000](http://127.0.0.1:3000) in your web browser to see the home/forums page and use the application.  
+`npm install`  
+Run the server by executing `npm start` from the repository root, 
+or run for deployment over https with `npm run deploy`  (put keys in /certs)   
+Navigate to [localhost:3000](http://localhost:3000) in your web browser to see the home/forums page and use the application.  
 Sometimes Shymon will have this deployed and running on his server at [gutek.xyz](https://gutek.xyz)  
 ### License ###
 

@@ -107,3 +107,6 @@ dist
 
 # Image uploads directory
 uploads/**
+
+# Certificate directory
+certs/**
