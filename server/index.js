@@ -10,8 +10,11 @@ const app = express();
 app.use(fileUpload({ createParentPath: true }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+
+// Static routes
 app.use("/", express.static("client"));
 app.use("/uploads", express.static("uploads"));
+
 // Account routes
 app.put("/server/createAccount", server.createAccount);
 app.post("/server/login", server.login);
@@ -33,9 +36,18 @@ app.post("/server/createThread", server.createThread);
 app.post("/server/createComment", server.createComment);
 app.post("/server/updateLikeCount", server.updateLikeCount);
 
-app.get("/test", (req, res) => {
-  console.log(req);
+// This is to undo the old 301 to /client/forums.html from before the refactor
+app.get("/client/forums.html", (req, res) => {
+  res.redirect(301, "/");
 });
+
+// Display 404 Page
+app.all("*", (req, res) => {
+  res.writeHead(404);
+  res.write(fs.readFileSync(path.join(process.env.PWD, "/client/notfound.html")));
+  res.end();
+});
+
 // Run the website locally for testing
 function local() {
   const port = process.env.PORT || 3000;
