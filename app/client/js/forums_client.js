@@ -7,6 +7,8 @@ const create_post_title = document.getElementById("create_post_title");
 const image_upload = document.getElementById("image_upload");
 const output_div = document.getElementById("output");
 const threads_div = document.getElementById("threads");
+const results_per_page = document.getElementById("count")
+const location = document.getElementById("location");
 
 const username = window.sessionStorage.getItem("user");
 const password = window.sessionStorage.getItem("pw");
@@ -14,8 +16,43 @@ const password = window.sessionStorage.getItem("pw");
 // Add logout button and display username on top right if user logged in;
 Util.integrateAuthUI();
 
+// create a URL parameter object to use for various paging functionality
+const urlParams = new URLSearchParams(window.location.search);
+
+// Set the results per page select form
+results_per_page.value = urlParams.has("amount") ? urlParams.get("amount") : results_per_page.value;
+
+// Get the current page number and results per page
+const page = urlParams.has("page") ? parseInt(urlParams.get("page")) : 1;
+const amount = results_per_page.value;
+
+// Set the location link
+const path = window.location.pathname;
+const numThreads = await crud.numThreads();
+const totalPages = amount === "All" ? 1 : Math.ceil(numThreads / parseInt(amount));
+let locationHtml = "Home > ";
+if (totalPages === 1){
+  locationHtml += "<b>Newest</b>";
+}
+else {
+  if (page > 1){
+    locationHtml += `<a href="${path}?page=${page - 1}&amount=${amount}">Prev</a> `;
+  }
+  locationHtml += `<b>${page === 1 ? "Newest" : page}</b> `;
+  if (page < totalPages){
+    locationHtml += `<a href="${path}?page=${page + 1}&amount=${amount}">Next</a>`;
+  }
+}
+location.innerHTML = locationHtml;
+
+
+// Refresh when rpp changes
+results_per_page.addEventListener("change", () => {
+  window.location.replace(`${path}?page=${page}&amount=${results_per_page.value}`);
+});
+
 // Get the threads and put them in the page
-const dumpedThreads = await crud.dumpThreads();
+const dumpedThreads = await crud.dumpThreads(page, amount);
 let threads_html =
   dumpedThreads.length !== 0
     ? ""
@@ -37,7 +74,11 @@ let threads_html =
 dumpedThreads.forEach((x, idx) => {
   const last = idx === dumpedThreads.length - 1 ? "bottom-row" : "";
   const template = `<div class="container-fluid forum ${last}">
-        <div class="w-50"><a href="${crud.ORIGIN}/client/post.html?title=${encodeURIComponent(x.title)}">${x.title}</a></div>
+        <div class="w-50"><a href="${
+          crud.ORIGIN
+        }/client/post.html?title=${encodeURIComponent(x.title)}&page=${page}&amount=${amount}">${
+    x.title
+  }</a></div>
         <div class="col-sm row-item">
           <div class="circle-div">${x.images}</div>
         </div>
@@ -75,5 +116,7 @@ submit_button.addEventListener("click", async (e) => {
     return;
   }
   output_div.innerHTML = `<h1>${response.success}</h1>`;
-  location.reload();
+  create_post_title.value = "";
+  create_post_text.value = "";
+  window.location.reload();
 });
