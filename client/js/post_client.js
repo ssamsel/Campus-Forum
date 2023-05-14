@@ -56,8 +56,8 @@ async function loadPost() {
   const urlParams = new URLSearchParams(window.location.search);
   const page = urlParams.has("page") ? urlParams.get("page") : "1";
   const link = urlParams.has("amount")
-    ? `/client/forums.html?page=${page}&amount=${urlParams.get("amount")}`
-    : `/client/forums.html?page=${page}&amount=4`;
+    ? `/?page=${page}&amount=${urlParams.get("amount")}`
+    : `/?page=${page}&amount=4`;
   navigation.innerHTML = `<a href="${link}">Home > ${
     page === "1" ? "Newest" : page
   } > </a> ${postData.title}`;
@@ -216,6 +216,7 @@ function setCommentEventHandlers() {
     });
   });
 }
+
 async function deleteThread(title) {
   const response = await crud.deleteThread(username, password, title);
   if (response.error !== undefined) {
@@ -223,5 +224,5 @@ async function deleteThread(title) {
   } else {
     alert("Post deleted");
   }
-  window.location.replace(crud.ORIGIN);
+  window.location.replace("/");
 }
