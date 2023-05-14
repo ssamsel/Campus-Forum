@@ -1,5 +1,4 @@
 import PouchDB from "pouchdb";
-import formidable from "formidable"; // For handling image uploads
 import * as timeUtils from "./time.js";
 import { createHash } from "node:crypto";
 import path from "path";
@@ -11,7 +10,7 @@ const accounts_db = new PouchDB(path.join(filePathPrefix, "/db/accounts"));
 const threads_db = new PouchDB(path.join(filePathPrefix, "/db/threads"));
 const comments_db = new PouchDB(path.join(filePathPrefix, "/db/comments"));
 
-const accountsLoggedIn = {};
+const accountsLoggedIn = { "TEST1": true };
 
 // This is to allow for accessing the server from the same IP origin
 // Will probably be modified once this is properly deployed
@@ -41,7 +40,7 @@ async function accountExists(username) {
 export async function createAccount(req, res) {
   const username = req.body.username;
   const password = req.body.password;
-  if (!username || !password){
+  if (!username || !password) {
     await sendError(res, 400, `Username or password not supplied in request`);
     return;
   }
@@ -123,77 +122,62 @@ async function loginValid(username, password) {
   return true;
 }
 
-function handleImageUpload(request) {
-  const filename = Date.now().toString();
-  const form = new formidable.IncomingForm({
-    maxFields: 1,
-    uploadDir: filePathPrefix + "/img/",
-    filename: () => filename,
-  });
-  try {
-    form.parse(request);
-  } catch (err) {
-    console.error(err);
+function handleImageUpload(req) {
+  if (!req.files){
+    return undefined;
   }
-  return "/img/" + filename;
+  const filepath = path.join(process.env.PWD, `img/${Date.now()}`);
+  const { image } = req.files;
+  image.mv(filepath);
+  return filepath;
 }
 
-export async function createThread(request, response, options) {
-  const username = options.user;
-  const password = options.pw;
-  const postTitle = options.postTitle;
-  const postText = options.postText;
-  const hasImage = options.hasImage === "true";
+export async function createThread(req, res) {
+  const username = req.body.username;
+  const password = req.body.password;
+  const postTitle = req.body.title;
+  const postText = req.body.text;
 
   const checkLogin = await loginValid(username, password);
   if (checkLogin !== true) {
-    await sendError(response, 400, checkLogin);
-    return;
-  }
-
-  if (hasImage === undefined) {
-    await sendError(response, 400, "Missing hasImage field");
+    await sendError(res, 400, checkLogin);
     return;
   }
 
   if (postTitle === "" || postTitle === undefined) {
-    await sendError(response, 400, "A thread title is required");
+    await sendError(res, 400, "A thread title is required");
     return;
   }
 
   if (postText === "" || postText === undefined) {
-    await sendError(response, 400, "Thread body text is required");
+    await sendError(res, 400, "Thread body text is required");
     return;
   }
 
   if (await threadExists(postTitle)) {
-    await sendError(response, 400, `Title "${postTitle}" taken`);
+    await sendError(res, 400, `Title "${postTitle}" taken`);
     return;
   }
 
   if (/\-/.test(postTitle) || /_/.test(postTitle)) {
-    await sendError(
-      response,
-      400,
-      "Title may not contain dashes nor underscores"
-    );
+    await sendError(res, 400, "Title may not contain dashes nor underscores");
     return;
   }
-
+  const imagePath = handleImageUpload(req);
   threads_db.put({
     _id: postTitle,
     author: username,
     body: postText,
     time: Date.now(),
-    images: hasImage ? 1 : 0,
-    imagePath: hasImage ? handleImageUpload(request) : undefined,
+    images: imagePath ? 1 : 0,
+    imagePath: imagePath,
     posts: 1,
     comments: [],
   });
 
-  response.writeHead(200, headerFields);
-  response.write(JSON.stringify({ success: "Thread Created" }));
-  response.end();
+  res.writeHead(200, headerFields);
+  res.write(JSON.stringify({ success: "Thread Created" }));
+  res.end();
 }
 
 export async function createComment(response, options) {
@@ -324,11 +308,11 @@ export async function deleteThread(response, options) {
   response.end();
 }
 
-export async function dumpThreads(response, options) {
+export async function dumpThreads(req, res) {
   const allDocs = await threads_db.allDocs({ include_docs: true });
   let threads = [];
-  const amount = options.amount;
-  const page = options.page;
+  const amount = req.query.amount;
+  const page = req.query.page;
   allDocs.rows.forEach((x) => threads.push(x.doc));
   threads.sort(timeUtils.compare);
   if (amount !== undefined && page != undefined && amount !== "All") {
@@ -337,8 +321,8 @@ export async function dumpThreads(response, options) {
     threads = threads.slice(pg * amt, pg * amt + amt);
   }
 
-  response.writeHead(200, headerFields);
-  response.write(
+  res.writeHead(200, headerFields);
+  res.write(
     JSON.stringify(
       threads.map((x) => {
         return {
@@ -352,14 +336,14 @@ export async function dumpThreads(response, options) {
       })
     )
   );
-  response.end();
+  res.end();
 }
 
-export async function numThreads(response, options) {
+export async function numThreads(req, res) {
   const allDocs = await threads_db.allDocs({ include_docs: true });
-  response.writeHead(200, headerFields);
-  response.write(JSON.stringify(allDocs.total_rows));
-  response.end();
+  res.writeHead(200, headerFields);
+  res.write(JSON.stringify(allDocs.total_rows));
+  res.end();
 }
 
 export async function updateLikeCount(response, options) {
@@ -388,10 +372,10 @@ export async function updateLikeCount(response, options) {
   response.end();
 }
 
-export async function isLoggedIn(response, options) {
-  response.writeHead(200, headerFields);
-  response.write(JSON.stringify(options.user in accountsLoggedIn));
-  response.end();
+export async function isLoggedIn(req, res) {
+  res.writeHead(200, headerFields);
+  res.write(JSON.stringify(req.query.username in accountsLoggedIn));
+  res.end();
 }
 
 export async function deleteComment(response, options) {

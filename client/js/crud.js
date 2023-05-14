@@ -43,15 +43,18 @@ export async function logOut(username, password) {
 }
 
 // Creates a new thread
-export async function createThread(username, password, post, image, hasImage) {
-  username = encodeURIComponent(username);
-  password = encodeURIComponent(password);
-  const text = encodeURIComponent(post.text);
-  const title = encodeURIComponent(post.title);
-  const response = await fetch(
-    `${ORIGIN}/server/createThread?user=${username}&pw=${password}&postTitle=${title}&postText=${text}&hasImage=${hasImage}`,
-    { method: "POST", body: image }
-  );
+export async function createThread(username, password, title, text, imagePath) {
+  const body = new FormData();
+  body.append("image", imagePath);
+  body.append("username", username);
+  body.append("password", password);
+  body.append("title", title);
+  body.append("text", text);
+
+  const response = await fetch(`/server/createThread`, {
+    method: "POST",
+    body: body,
+  });
   const data = await response.json();
   return data;
 }
@@ -116,7 +119,7 @@ export async function deleteThread(username, password, title) {
 // Returns an array of all the thread objects
 export async function dumpThreads(page, amount) {
   const response = await fetch(
-    `${ORIGIN}/server/dumpThreads?page=${page}&amount=${amount}`,
+    `/server/dumpThreads?page=${page}&amount=${amount}`,
     { method: "GET" }
   );
   const data = await response.json();
@@ -138,10 +141,12 @@ export async function updateLikeCount(comment, username, password) {
 
 // Returns a boolean on weather username is logged in
 export async function isLoggedIn(username) {
-  username = encodeURIComponent(username);
-  const response = await fetch(`${ORIGIN}/server/isLoggedIn?user=${username}`, {
-    method: "GET",
-  });
+  const response = await fetch(
+    `/server/isLoggedIn?username=${encodeURIComponent(username)}`,
+    {
+      method: "GET",
+    }
+  );
   const data = await response.json();
   return data;
 }
@@ -160,7 +165,7 @@ export async function deleteComment(commentID, username, password) {
 }
 
 export async function numThreads() {
-  const response = await fetch(`${ORIGIN}/server/numThreads`, {
+  const response = await fetch(`/server/numThreads`, {
     method: "GET",
   });
   const data = await response.json();

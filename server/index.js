@@ -1,4 +1,5 @@
 import express from "express";
+import fileUpload from "express-fileupload";
 import * as https from "https";
 import * as http from "http";
 import * as fs from "fs";
@@ -6,6 +7,7 @@ import path from "path";
 import * as server from "./server.js";
 
 const app = express();
+app.use(fileUpload({ createParentPath: true }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use("/", express.static("client"));
@@ -31,9 +33,8 @@ app.post("/server/createThread", server.createThread);
 app.post("/server/createComment", server.createComment);
 app.post("/server/updateLikeCount", server.updateLikeCount);
 
-
 app.get("/test", (req, res) => {
-    console.log(req);
+  console.log(req);
 });
 // Run the website locally for testing
 function local() {
