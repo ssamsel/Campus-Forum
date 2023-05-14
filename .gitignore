@@ -105,8 +105,5 @@ dist
 
 .DS_Store
 
-# SSL Certs
-app/certs/**
-
-# Databases 
-app/db/**
+# Image uploads directory
+uploads/**
