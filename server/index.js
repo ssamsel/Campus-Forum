@@ -65,7 +65,7 @@ function deploy() {
     cert: fs.readFileSync(path.join(process.env.PWD, "certs/domain.cert.pem")),
   };
   // Create the https server
-  https.createServer(credentials, app).listen(httpPort, () => {
+  https.createServer(credentials, app).listen(httpsPort, () => {
     console.log(`Stated https server on port ${httpsPort}`);
   });
 
