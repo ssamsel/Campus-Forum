@@ -80,16 +80,18 @@ export async function createComment(
   password,
   text
 ) {
-  post_parent = encodeURIComponent(post_parent);
-  post_id = encodeURIComponent(post_id);
-  parent_id = encodeURIComponent(parent_id);
-  username = encodeURIComponent(username);
-  password = encodeURIComponent(password);
-  text = encodeURIComponent(text);
-  const response = await fetch(
-    `${ORIGIN}/server/createComment?post_id=${post_id}&post_parent=${post_parent}&parent_id=${parent_id}&username=${username}&pw=${password}&text=${text}`,
-    { method: "POST" }
-  );
+  const response = await fetch(`/server/createComment`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      username: username,
+      password: password,
+      text: text,
+      post_id: post_id,
+      post_parent: post_parent,
+      parent_id: parent_id,
+    }),
+  });
   const data = await response.json();
   return data;
 }
@@ -164,14 +166,17 @@ export async function isLoggedIn(username) {
 }
 
 export async function deleteComment(commentID, username, password) {
-  username = encodeURIComponent(username);
-  password = encodeURIComponent(password);
-  commentID = encodeURIComponent(commentID);
-
-  const response = await fetch(
-    `${ORIGIN}/server/deleteComment?user=${username}&pw=${password}&comment=${commentID}`,
-    { method: "DELETE" }
-  );
+  const response = await fetch(`/server/deleteComment`, {
+    method: "DELETE",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      username: username,
+      password: password,
+      commentID: commentID,
+    }),
+  });
   const data = await response.json();
   return data;
 }

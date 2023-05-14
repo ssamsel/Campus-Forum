@@ -180,51 +180,51 @@ export async function createThread(req, res) {
   res.end();
 }
 
-export async function createComment(response, options) {
-  if (!(await threadExists(options.post_id))) {
-    await sendError(response, 404, "Post not found.");
+export async function createComment(req, res) {
+  if (!(await threadExists(req.body.post_id))) {
+    await sendError(res, 404, "Post not found.");
     return;
   }
-  if (options.text === "") {
-    await sendError(response, 400, "Comment cannot be empty");
+  if (req.body.text === "") {
+    await sendError(res, 400, "Comment cannot be empty");
     return;
   }
 
-  const checkLogin = await loginValid(options.username, options.pw);
+  const checkLogin = await loginValid(req.body.username, req.body.password);
   if (checkLogin !== true) {
-    await sendError(response, 400, checkLogin);
+    await sendError(res, 400, checkLogin);
     return;
   }
 
-  const post = await threads_db.get(options.post_id);
-  const commentId = post.posts.toString() + "-" + options.post_id;
+  const post = await threads_db.get(req.body.post_id);
+  const commentId = post.posts.toString() + "-" + req.body.post_id;
   post.posts++;
   post.time = Date.now();
   await threads_db.put(post, { _rev: post._rev, force: true });
 
-  if (options.post_parent === "true") {
-    threads_db.get(options.parent_id).then(async function (doc) {
+  if (req.body.post_parent === "true") {
+    threads_db.get(req.body.parent_id).then(async function (doc) {
       doc.comments.push(commentId);
       await threads_db.put(doc, { _rev: doc._rev, force: true });
     });
   } else {
-    comments_db.get(options.parent_id).then(async function (doc) {
+    comments_db.get(req.body.parent_id).then(async function (doc) {
       doc.children.push(commentId);
       await comments_db.put(doc), { _rev: doc._rev, force: true };
     });
   }
   await comments_db.put({
     _id: commentId,
-    author: options.username,
-    comment_body: options.text,
+    author: req.body.username,
+    comment_body: req.body.text,
     time: Date.now(),
     likes: 0,
     children: [],
   });
 
-  response.writeHead(200, headerFields);
-  response.write(JSON.stringify({ success: "Comment Created" }));
-  response.end();
+  res.writeHead(200, headerFields);
+  res.write(JSON.stringify({ success: "Comment Created" }));
+  res.end();
 }
 
 export async function getThread(req, res) {
