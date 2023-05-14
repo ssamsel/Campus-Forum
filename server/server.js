@@ -126,9 +126,9 @@ function handleImageUpload(req) {
   if (!req.files){
     return undefined;
   }
-  const filepath = path.join(process.env.PWD, `img/${Date.now()}`);
+  const filepath = `/uploads/${Date.now()}`;
   const { image } = req.files;
-  image.mv(filepath);
+  image.mv(path.join(process.env.PWD, filepath));
   return filepath;
 }
 
@@ -346,30 +346,30 @@ export async function numThreads(req, res) {
   res.end();
 }
 
-export async function updateLikeCount(response, options) {
-  const checkLogin = await loginValid(options.user, options.pw);
+export async function updateLikeCount(req, res) {
+  const checkLogin = await loginValid(req.body.username, req.body.password);
   if (checkLogin !== true) {
-    await sendError(response, 400, checkLogin);
+    await sendError(res, 400, checkLogin);
     return;
   }
 
-  comments_db.get(options.comment).then(async function (doc) {
-    const userDoc = await accounts_db.get(options.user);
+  comments_db.get(req.body.comment).then(async function (doc) {
+    const userDoc = await accounts_db.get(req.body.username);
 
-    if (userDoc.likes.some((x) => x === options.comment)) {
+    if (userDoc.likes.some((x) => x === req.body.comment)) {
       --doc.likes;
-      userDoc.likes.splice(userDoc.likes.indexOf(options.comment), 1);
+      userDoc.likes.splice(userDoc.likes.indexOf(req.body.comment), 1);
     } else {
       ++doc.likes;
-      userDoc.likes.push(options.comment);
+      userDoc.likes.push(req.body.comment);
     }
     await accounts_db.put(userDoc, { _rev: userDoc.rev, force: true });
     await comments_db.put(doc, { _rev: doc.rev, force: true });
   });
 
-  response.writeHead(200, headerFields);
-  response.write(JSON.stringify({ success: "Comment Like Count Updated" }));
-  response.end();
+  res.writeHead(200, headerFields);
+  res.write(JSON.stringify({ success: "Comment Like Count Updated" }));
+  res.end();
 }
 
 export async function isLoggedIn(req, res) {
@@ -378,9 +378,9 @@ export async function isLoggedIn(req, res) {
   res.end();
 }
 
-export async function deleteComment(response, options) {
+export async function deleteComment(req, res) {
   // TODO this method is incomplete
-  response.writeHead(200, headerFields);
-  response.write(JSON.stringify({ error: "Not yet implemented" }));
-  response.end();
+  res.writeHead(200, headerFields);
+  res.write(JSON.stringify({ error: "Not yet implemented" }));
+  res.end();
 }

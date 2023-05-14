@@ -11,7 +11,7 @@ app.use(fileUpload({ createParentPath: true }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use("/", express.static("client"));
-
+app.use("/uploads", express.static("uploads"));
 // Account routes
 app.put("/server/createAccount", server.createAccount);
 app.post("/server/login", server.login);

@@ -136,13 +136,17 @@ export async function dumpThreads(page, amount) {
 
 // Updates the like count for comment
 export async function updateLikeCount(comment, username, password) {
-  username = encodeURIComponent(username);
-  password = encodeURIComponent(password);
-  comment = encodeURIComponent(comment);
-  const response = await fetch(
-    `${ORIGIN}/server/updateLikeCount?comment=${comment}&user=${username}&pw=${password}`,
-    { method: "POST" }
-  );
+  const response = await fetch(`/server/updateLikeCount`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      username: username,
+      password: password,
+      comment: comment,
+    }),
+  });
   const data = await response.json();
   return data;
 }
