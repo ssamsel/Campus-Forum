@@ -1,28 +1,16 @@
-import PouchDB from "pouchdb";
 import * as timeUtils from "./time.js";
-import { createHash } from "node:crypto";
+import * as db from "./database.js";
 import path from "path";
-// This is to ensure that no matter where the server is run from, the path is always valid
-// This regex removes the ending "server.js" and replaces it with the path to the requested resource
-const filePathPrefix = process.env.PWD;
 
-const accounts_db = new PouchDB(path.join(filePathPrefix, "/db/accounts"));
-const threads_db = new PouchDB(path.join(filePathPrefix, "/db/threads"));
-const comments_db = new PouchDB(path.join(filePathPrefix, "/db/comments"));
-
-const accountsLoggedIn = { "TEST1": true };
+const accountsLoggedIn = { TEST1: true };
 
 // This is to allow for accessing the server from the same IP origin
 // Will probably be modified once this is properly deployed
 const headerFields = {
   "Content-Type": "application/json",
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Methods": "GET, DELETE, HEAD, OPTIONS, PUT, POST",
+  "Access-Control-Allow-Methods": "GET, DELETE, HEAD, PUT, POST",
 };
-
-function hashPassword(password) {
-  return createHash("sha256").update(password).digest("base64");
-}
 
 // Send an error message back to client
 // sendError(response: HTTPresponse, code: number, message: string): void
@@ -30,11 +18,6 @@ async function sendError(response, code, message) {
   response.writeHead(code, headerFields);
   response.write(JSON.stringify({ error: message }));
   response.end();
-}
-
-async function accountExists(username) {
-  const docs = await accounts_db.allDocs({ include_docs: true });
-  return docs.rows.some((x) => x.id === username);
 }
 
 export async function createAccount(req, res) {
@@ -45,31 +28,23 @@ export async function createAccount(req, res) {
     return;
   }
 
-  if (await accountExists(username)) {
+  if (await db.accounts.exists(username)) {
     await sendError(res, 400, `Username '${req.body.username}' taken`);
     return;
   }
-  await accounts_db.put({
-    _id: username,
-    pwHash: hashPassword(password),
-    likes: [],
-  });
+  db.accounts.create(username, password);
+
   res.writeHead(200, headerFields);
   res.write(JSON.stringify({ success: "Account created" }));
   res.end();
-}
-
-async function checkPassword(username, password) {
-  const account = await accounts_db.get(username);
-  return account.pwHash === hashPassword(password);
 }
 
 export async function login(req, res) {
   const username = req.body.username;
   const password = req.body.password;
 
-  if (await accountExists(username)) {
-    if (await checkPassword(username, password)) {
+  if (await db.accounts.exists(username)) {
+    if (await db.accounts.checkPassword(username, password)) {
       accountsLoggedIn[username] = true;
       res.writeHead(200, headerFields);
       res.write(JSON.stringify({ success: "Successfully logged in" }));
@@ -85,19 +60,11 @@ export async function login(req, res) {
 export async function logout(req, res) {
   const username = req.body.username;
   const password = req.body.password;
-  if (
-    (await accountExists(username)) &&
-    (await checkPassword(username, password))
-  ) {
+  if (await loginValid(username, password)) {
     delete accountsLoggedIn[username];
   }
   res.writeHead(200, headerFields);
   res.end();
-}
-
-async function threadExists(title) {
-  const docs = await threads_db.allDocs({ include_docs: true });
-  return docs.rows.some((x) => x.id === title);
 }
 
 async function loginValid(username, password) {
@@ -109,8 +76,8 @@ async function loginValid(username, password) {
   }
 
   if (
-    !(await accountExists(username)) ||
-    !(await checkPassword(username, password))
+    !(await db.accounts.exists(username)) ||
+    !(await db.accounts.checkPassword(username, password))
   ) {
     return "Bad Request";
   }
@@ -123,7 +90,7 @@ async function loginValid(username, password) {
 }
 
 function handleImageUpload(req) {
-  if (!req.files){
+  if (!req.files) {
     return undefined;
   }
   const filepath = `/uploads/${Date.now()}`;
@@ -135,8 +102,8 @@ function handleImageUpload(req) {
 export async function createThread(req, res) {
   const username = req.body.username;
   const password = req.body.password;
-  const postTitle = req.body.title;
-  const postText = req.body.text;
+  const title = req.body.title;
+  const text = req.body.text;
 
   const checkLogin = await loginValid(username, password);
   if (checkLogin !== true) {
@@ -144,36 +111,27 @@ export async function createThread(req, res) {
     return;
   }
 
-  if (postTitle === "" || postTitle === undefined) {
+  if (title === "" || title === undefined) {
     await sendError(res, 400, "A thread title is required");
     return;
   }
 
-  if (postText === "" || postText === undefined) {
+  if (text === "" || text === undefined) {
     await sendError(res, 400, "Thread body text is required");
     return;
   }
 
-  if (await threadExists(postTitle)) {
-    await sendError(res, 400, `Title "${postTitle}" taken`);
+  if (await db.threads.exists(title)) {
+    await sendError(res, 400, `Title "${title}" taken`);
     return;
   }
 
-  if (/\-/.test(postTitle) || /_/.test(postTitle)) {
+  if (/\-/.test(title) || /_/.test(title)) {
     await sendError(res, 400, "Title may not contain dashes nor underscores");
     return;
   }
   const imagePath = handleImageUpload(req);
-  threads_db.put({
-    _id: postTitle,
-    author: username,
-    body: postText,
-    time: Date.now(),
-    images: imagePath ? 1 : 0,
-    imagePath: imagePath,
-    posts: 1,
-    comments: [],
-  });
+  db.threads.create(username, title, text, imagePath);
 
   res.writeHead(200, headerFields);
   res.write(JSON.stringify({ success: "Thread Created" }));
@@ -181,7 +139,7 @@ export async function createThread(req, res) {
 }
 
 export async function createComment(req, res) {
-  if (!(await threadExists(req.body.post_id))) {
+  if (!(await db.threads.exists(req.body.post_id))) {
     await sendError(res, 404, "Post not found.");
     return;
   }
@@ -196,31 +154,17 @@ export async function createComment(req, res) {
     return;
   }
 
-  const post = await threads_db.get(req.body.post_id);
-  const commentId = post.posts.toString() + "-" + req.body.post_id;
-  post.posts++;
-  post.time = Date.now();
-  await threads_db.put(post, { _rev: post._rev, force: true });
+  const num = await db.threads.incrementPostCount(req.body.post_id);
+  await db.threads.updateTimeStamp(req.body.post_id);
 
+  const comment_id = (num - 1).toString() + "-" + req.body.post_id;
   if (req.body.post_parent === "true") {
-    threads_db.get(req.body.parent_id).then(async function (doc) {
-      doc.comments.push(commentId);
-      await threads_db.put(doc, { _rev: doc._rev, force: true });
-    });
+    await db.threads.addTopLevelComment(req.body.parent_id, comment_id);
   } else {
-    comments_db.get(req.body.parent_id).then(async function (doc) {
-      doc.children.push(commentId);
-      await comments_db.put(doc), { _rev: doc._rev, force: true };
-    });
+    await db.comments.addChild(req.body.parent_id, comment_id);
   }
-  await comments_db.put({
-    _id: commentId,
-    author: req.body.username,
-    comment_body: req.body.text,
-    time: Date.now(),
-    likes: 0,
-    children: [],
-  });
+
+  await db.comments.create(comment_id, req.body.username, req.body.text);
 
   res.writeHead(200, headerFields);
   res.write(JSON.stringify({ success: "Comment Created" }));
@@ -228,44 +172,35 @@ export async function createComment(req, res) {
 }
 
 export async function getThread(req, res) {
-  if (!(await threadExists(req.query.post_id))) {
+  if (!(await db.threads.exists(req.query.post_id))) {
     await sendError(res, 404, "Post not found.");
     return;
   }
 
-  const post = await threads_db.get(req.query.post_id);
+  const thread = await db.threads.get(req.query.post_id);
   res.writeHead(200, headerFields);
   res.write(
     JSON.stringify({
-      title: post._id,
-      author: post.author,
-      post_body: post.body,
-      imagePath: post.imagePath,
+      title: thread.title,
+      author: thread.author,
+      post_body: thread.body,
+      imagePath: thread.imagePath,
     })
   );
+
   res.end();
 }
 
-async function loadComment(comment_id) {
-  const comment = await comments_db.get(comment_id);
-  for (let i = 0; i < comment.children.length; i++) {
-    const child = await loadComment(comment.children[i]);
-    comment.children[i] = child;
-  }
-
-  return comment;
-}
-
 export async function getComments(req, res) {
-  if (!(await threadExists(req.query.post_id))) {
+  if (!(await db.threads.exists(req.query.post_id))) {
     await sendError(res, 404, "Post not found.");
     return;
   }
 
-  const post = await threads_db.get(req.query.post_id);
+  const post = await db.threads.get(req.query.post_id);
   const raw_comments = [];
   for (let i = 0; i < post.comments.length; i++) {
-    raw_comments.push(await loadComment(post.comments[i]));
+    raw_comments.push(await db.comments.load(post.comments[i]));
   }
 
   function recursiveMapHOF(x) {
@@ -288,20 +223,18 @@ export async function deleteThread(req, res) {
     return;
   }
 
-  if (!(await threadExists(req.body.title))) {
+  if (!(await db.threads.exists(req.body.title))) {
     await sendError(res, 400, "Post does not exist");
     return;
   }
 
-  const doc = await threads_db.get(req.body.title);
-  const comments = await comments_db.allDocs({ include_docs: true });
-  comments.rows.forEach(async (comment) => {
-    const re = new RegExp(`^\\d+\-${doc._id}$`);
-    if (re.test(comment.id)) {
-      await comments_db.remove(await comments_db.get(comment.id));
-    }
-  });
-  await threads_db.remove(doc);
+  if ((await db.threads.get(req.body.title)).author !== req.body.username) {
+    await sendError(res, 400, "You are not the creator of this thread");
+    return;
+  }
+
+  await db.comments.deleteAllFromThread(req.body.title);
+  await db.threads.delete(req.body.title);
 
   res.writeHead(200, headerFields);
   res.write(JSON.stringify({ success: "Deleted successfully" }));
@@ -309,40 +242,16 @@ export async function deleteThread(req, res) {
 }
 
 export async function dumpThreads(req, res) {
-  const allDocs = await threads_db.allDocs({ include_docs: true });
-  let threads = [];
-  const amount = req.query.amount;
-  const page = req.query.page;
-  allDocs.rows.forEach((x) => threads.push(x.doc));
-  threads.sort(timeUtils.compare);
-  if (amount !== undefined && page != undefined && amount !== "All") {
-    const amt = parseInt(amount);
-    const pg = parseInt(page) - 1;
-    threads = threads.slice(pg * amt, pg * amt + amt);
-  }
-
   res.writeHead(200, headerFields);
   res.write(
-    JSON.stringify(
-      threads.map((x) => {
-        return {
-          author: x.author,
-          title: x._id,
-          body: x.body,
-          time: timeUtils.convertToRecencyString(x.time),
-          images: x.images,
-          posts: x.posts,
-        };
-      })
-    )
+    JSON.stringify(await db.threads.dump(req.query.amount, req.query.page))
   );
   res.end();
 }
 
 export async function numThreads(req, res) {
-  const allDocs = await threads_db.allDocs({ include_docs: true });
   res.writeHead(200, headerFields);
-  res.write(JSON.stringify(allDocs.total_rows));
+  res.write(JSON.stringify(await db.threads.total()));
   res.end();
 }
 
@@ -353,19 +262,10 @@ export async function updateLikeCount(req, res) {
     return;
   }
 
-  comments_db.get(req.body.comment).then(async function (doc) {
-    const userDoc = await accounts_db.get(req.body.username);
-
-    if (userDoc.likes.some((x) => x === req.body.comment)) {
-      --doc.likes;
-      userDoc.likes.splice(userDoc.likes.indexOf(req.body.comment), 1);
-    } else {
-      ++doc.likes;
-      userDoc.likes.push(req.body.comment);
-    }
-    await accounts_db.put(userDoc, { _rev: userDoc.rev, force: true });
-    await comments_db.put(doc, { _rev: doc.rev, force: true });
-  });
+  db.comments.changeLikeCount(
+    req.body.comment,
+    await db.accounts.toggleCommentLike(req.body.username, req.body.comment)
+  );
 
   res.writeHead(200, headerFields);
   res.write(JSON.stringify({ success: "Comment Like Count Updated" }));
