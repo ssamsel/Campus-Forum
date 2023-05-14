@@ -61,10 +61,12 @@ export async function createThread(username, password, title, text, imagePath) {
 
 // Returns a specific thread object
 export async function getThread(post) {
-  post = encodeURIComponent(post);
-  const response = await fetch(`${ORIGIN}/server/getThread?post_id=${post}`, {
-    method: "GET",
-  });
+  const response = await fetch(
+    `/server/getThread?post_id=${encodeURIComponent(post)}`,
+    {
+      method: "GET",
+    }
+  );
   const data = await response.json();
   return data;
 }
@@ -94,10 +96,12 @@ export async function createComment(
 
 // Returns list of comment objects for post
 export async function getComments(post) {
-  post = encodeURIComponent(post);
-  const response = await fetch(`${ORIGIN}/server/getComments?post_id=${post}`, {
-    method: "GET",
-  });
+  const response = await fetch(
+    `/server/getComments?post_id=${encodeURIComponent(post)}`,
+    {
+      method: "GET",
+    }
+  );
   const data = await response.json();
   return data;
 }
@@ -105,13 +109,17 @@ export async function getComments(post) {
 // Deleted a thread with title title
 // User must be authenticated
 export async function deleteThread(username, password, title) {
-  username = encodeURIComponent(username);
-  password = encodeURIComponent(password);
-  title = encodeURIComponent(title);
-  const response = await fetch(
-    `${ORIGIN}/server/deleteThread?user=${username}&pw=${password}&title=${title}`,
-    { method: "DELETE" }
-  );
+  const response = await fetch(`/server/deleteThread`, {
+    method: "DELETE",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      username: username,
+      password: password,
+      title: title,
+    }),
+  });
   const data = await response.json();
   return data;
 }

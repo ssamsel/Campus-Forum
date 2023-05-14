@@ -227,15 +227,15 @@ export async function createComment(response, options) {
   response.end();
 }
 
-export async function getThread(response, options) {
-  if (!(await threadExists(options.post_id))) {
-    await sendError(response, 404, "Post not found.");
+export async function getThread(req, res) {
+  if (!(await threadExists(req.query.post_id))) {
+    await sendError(res, 404, "Post not found.");
     return;
   }
 
-  const post = await threads_db.get(options.post_id);
-  response.writeHead(200, headerFields);
-  response.write(
+  const post = await threads_db.get(req.query.post_id);
+  res.writeHead(200, headerFields);
+  res.write(
     JSON.stringify({
       title: post._id,
       author: post.author,
@@ -243,7 +243,7 @@ export async function getThread(response, options) {
       imagePath: post.imagePath,
     })
   );
-  response.end();
+  res.end();
 }
 
 async function loadComment(comment_id) {
@@ -256,13 +256,13 @@ async function loadComment(comment_id) {
   return comment;
 }
 
-export async function getComments(response, options) {
-  if (!(await threadExists(options.post_id))) {
-    await sendError(response, 404, "Post not found.");
+export async function getComments(req, res) {
+  if (!(await threadExists(req.query.post_id))) {
+    await sendError(res, 404, "Post not found.");
     return;
   }
 
-  const post = await threads_db.get(options.post_id);
+  const post = await threads_db.get(req.query.post_id);
   const raw_comments = [];
   for (let i = 0; i < post.comments.length; i++) {
     raw_comments.push(await loadComment(post.comments[i]));
@@ -276,24 +276,24 @@ export async function getComments(response, options) {
 
   const comments = raw_comments.map(recursiveMapHOF);
 
-  response.writeHead(200, headerFields);
-  response.write(JSON.stringify({ comments: comments }));
-  response.end();
+  res.writeHead(200, headerFields);
+  res.write(JSON.stringify({ comments: comments }));
+  res.end();
 }
 
-export async function deleteThread(response, options) {
-  const checkLogin = await loginValid(options.user, options.pw);
+export async function deleteThread(req, res) {
+  const checkLogin = await loginValid(req.body.username, req.body.password);
   if (checkLogin !== true) {
-    await sendError(response, 400, checkLogin);
+    await sendError(res, 400, checkLogin);
     return;
   }
 
-  if (!(await threadExists(options.title))) {
-    await sendError(response, 400, "Post does not exist");
+  if (!(await threadExists(req.body.title))) {
+    await sendError(res, 400, "Post does not exist");
     return;
   }
 
-  const doc = await threads_db.get(options.title);
+  const doc = await threads_db.get(req.body.title);
   const comments = await comments_db.allDocs({ include_docs: true });
   comments.rows.forEach(async (comment) => {
     const re = new RegExp(`^\\d+\-${doc._id}$`);
@@ -303,9 +303,9 @@ export async function deleteThread(response, options) {
   });
   await threads_db.remove(doc);
 
-  response.writeHead(200, headerFields);
-  response.write(JSON.stringify({ success: "Deleted successfully" }));
-  response.end();
+  res.writeHead(200, headerFields);
+  res.write(JSON.stringify({ success: "Deleted successfully" }));
+  res.end();
 }
 
 export async function dumpThreads(req, res) {
