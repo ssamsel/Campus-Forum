@@ -1,4 +1,4 @@
 #!/bin/sh
-rm -rf app/db/*
-rm -rf app/img/*
+rm -rf uploads/*
+rm -rf db/*
 echo done
