@@ -279,8 +279,22 @@ export async function isLoggedIn(req, res) {
 }
 
 export async function deleteComment(req, res) {
-  // TODO this method is incomplete
+  const username = req.body.username;
+  const password = req.body.password;
+  const comment_id = req.body.commentID;
+  
+  const checkLogin = await loginValid(username, password);
+  if (checkLogin !== true) {
+    await sendError(res, 400, checkLogin);
+    return;
+  }
+  if ((await db.comments.getAuthor(comment_id)) !== username){
+    await sendError(res, 400, "Not your comment");
+    return;
+  }
+  await db.comments.changeText(comment_id, "[DELETED]");
+
   res.writeHead(200, headerFields);
-  res.write(JSON.stringify({ error: "Not yet implemented" }));
+  res.write(JSON.stringify({ success: "Comment Deleted" }));
   res.end();
 }
