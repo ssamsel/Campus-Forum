@@ -1,14 +1,7 @@
-import * as http from "http";
-import * as https from "https";
-import * as url from "url";
 import PouchDB from "pouchdb";
 import formidable from "formidable"; // For handling image uploads
-import { readFile } from "fs/promises";
-import { readFileSync } from "fs";
 import * as timeUtils from "./time.js";
 import { createHash } from "node:crypto";
-
-const DEFAULT_PORT_LOCAL = 3000;
 
 // This is to ensure that no matter where the server is run from, the path is always valid
 // This regex removes the ending "server.js" and replaces it with the path to the requested resource
@@ -45,8 +38,8 @@ async function accountExists(username) {
   return docs.rows.some((x) => x.id === username);
 }
 
-async function createAccount(response, options) {
-  const username = Object.keys(options)[0];
+export async function createAccount(request, response) {
+  const username = Object.keys(request)[0];
   if (await accountExists(username)) {
     await sendError(response, 404, `Username '${username}' taken`);
     return;
@@ -54,7 +47,7 @@ async function createAccount(response, options) {
 
   await accounts_db.put({
     _id: username,
-    pwHash: hashPassword(options[username]),
+    pwHash: hashPassword(request[username]),
     likes: [],
   });
   response.writeHead(200, headerFields);
@@ -67,7 +60,7 @@ async function checkPassword(username, password) {
   return account.pwHash === hashPassword(password);
 }
 
-async function login(response, options) {
+export async function login(response, options) {
   const username = Object.keys(options)[0];
   if (await accountExists(username)) {
     if (await checkPassword(username, options[username])) {
@@ -83,11 +76,11 @@ async function login(response, options) {
   await sendError(response, 404, `Account ${username} does not exist`);
 }
 
-async function logout(response, options) {
-  const username = Object.keys(options)[0];
+export async function logout(request, response) {
+  const username = Object.keys(request)[0];
   if (
     (await accountExists(username)) &&
-    (await checkPassword(username, options[username]))
+    (await checkPassword(username, request[username]))
   ) {
     delete accountsLoggedIn[username];
   }
@@ -137,7 +130,7 @@ function handleImageUpload(request) {
   return "/img/" + filename;
 }
 
-async function createThread(request, response, options) {
+export async function createThread(request, response, options) {
   const username = options.user;
   const password = options.pw;
   const postTitle = options.postTitle;
@@ -195,7 +188,7 @@ async function createThread(request, response, options) {
   response.end();
 }
 
-async function createComment(response, options) {
+export async function createComment(response, options) {
   if (!(await threadExists(options.post_id))) {
     await sendError(response, 404, "Post not found.");
     return;
@@ -242,7 +235,7 @@ async function createComment(response, options) {
   response.end();
 }
 
-async function getThread(response, options) {
+export async function getThread(response, options) {
   if (!(await threadExists(options.post_id))) {
     await sendError(response, 404, "Post not found.");
     return;
@@ -271,7 +264,7 @@ async function loadComment(comment_id) {
   return comment;
 }
 
-async function getComments(response, options) {
+export async function getComments(response, options) {
   if (!(await threadExists(options.post_id))) {
     await sendError(response, 404, "Post not found.");
     return;
@@ -296,7 +289,7 @@ async function getComments(response, options) {
   response.end();
 }
 
-async function deleteThread(response, options) {
+export async function deleteThread(response, options) {
   const checkLogin = await loginValid(options.user, options.pw);
   if (checkLogin !== true) {
     await sendError(response, 400, checkLogin);
@@ -323,7 +316,7 @@ async function deleteThread(response, options) {
   response.end();
 }
 
-async function dumpThreads(response, options) {
+export async function dumpThreads(response, options) {
   const allDocs = await threads_db.allDocs({ include_docs: true });
   let threads = [];
   const amount = options.amount;
@@ -354,14 +347,14 @@ async function dumpThreads(response, options) {
   response.end();
 }
 
-async function numThreads(response, options) {
+export async function numThreads(response, options) {
   const allDocs = await threads_db.allDocs({ include_docs: true });
   response.writeHead(200, headerFields);
   response.write(JSON.stringify(allDocs.total_rows));
   response.end();
 }
 
-async function updateLikeCount(response, options) {
+export async function updateLikeCount(response, options) {
   const checkLogin = await loginValid(options.user, options.pw);
   if (checkLogin !== true) {
     await sendError(response, 400, checkLogin);
@@ -387,184 +380,15 @@ async function updateLikeCount(response, options) {
   response.end();
 }
 
-async function isLoggedIn(response, options) {
+export async function isLoggedIn(response, options) {
   response.writeHead(200, headerFields);
   response.write(JSON.stringify(options.user in accountsLoggedIn));
   response.end();
 }
 
-async function deleteComment(response, options) {
+export async function deleteComment(response, options) {
   // TODO this method is incomplete
   response.writeHead(200, headerFields);
   response.write(JSON.stringify({ error: "Not yet implemented" }));
   response.end();
-}
-
-async function server(request, response) {
-  const parsedURL = url.parse(request.url, true);
-  const options = parsedURL.query;
-  const pathname = parsedURL.pathname;
-  const method = request.method;
-
-  if (pathname.startsWith("/certs")) {
-    response.writeHead(403, headerFields);
-    response.end();
-    return;
-  }
-
-  if (method === "OPTIONS") {
-    response.writeHead(200, headerFields);
-    response.end();
-    return;
-  }
-
-  if (method === "PUT" && pathname.startsWith("/server/createAccount")) {
-    createAccount(response, options);
-    return;
-  }
-
-  if (method === "POST" && pathname.startsWith("/server/login")) {
-    login(response, options);
-    return;
-  }
-
-  if (method === "POST" && pathname.startsWith("/server/logout")) {
-    logout(response, options);
-    return;
-  }
-
-  if (method === "POST" && pathname.startsWith("/server/createThread")) {
-    createThread(request, response, options);
-    return;
-  }
-
-  if (method === "POST" && pathname.startsWith("/server/createComment")) {
-    createComment(response, options);
-    return;
-  }
-
-  if (method === "GET" && pathname.startsWith("/server/getThread")) {
-    getThread(response, options);
-    return;
-  }
-
-  if (method === "GET" && pathname.startsWith("/server/getComments")) {
-    getComments(response, options);
-    return;
-  }
-
-  if (method === "DELETE" && pathname.startsWith("/server/deleteThread")) {
-    deleteThread(response, options);
-    return;
-  }
-  if (method === "GET" && pathname.startsWith("/server/dumpThreads")) {
-    dumpThreads(response, options);
-    return;
-  }
-  if (method === "POST" && pathname.startsWith("/server/updateLikeCount")) {
-    updateLikeCount(response, options);
-    return;
-  }
-  if (method === "GET" && pathname.startsWith("/server/isLoggedIn")) {
-    isLoggedIn(response, options);
-    return;
-  }
-  if (method === "DELETE" && pathname.startsWith("/server/deleteComment")) {
-    deleteComment(response, options);
-    return;
-  }
-  if (method === "GET" && pathname.startsWith("/server/numThreads")) {
-    numThreads(response, options);
-    return;
-  }
-
-  if (method === "GET" && !pathname.startsWith("/server")) {
-    if (pathname === "/") {
-      response.writeHead(301, { Location: "/client/forums.html" });
-      response.end();
-      return;
-    }
-    try {
-      let type = "";
-      if (pathname.endsWith(".css")) {
-        type = "text/css";
-      } else if (pathname.endsWith(".js")) {
-        type = "text/javascript";
-      } else if (pathname.endsWith(".html")) {
-        type = "text/html";
-      } else if (pathname.search(/(\.jpg)|(\.png)|(\.jpeg)$/) !== -1) {
-        type = "image/jpeg";
-      } else {
-        type = "text/plain";
-      }
-
-      const data = await readFile(filePathPrefix + pathname);
-      response.writeHead(200, { "Content-Type": type });
-      response.write(data);
-    } catch (err) {
-      console.error(err);
-      response.statusCode = 404;
-      response.write(`Not Found: ${pathname}`);
-    }
-    response.end();
-    return;
-  }
-}
-
-function usageError() {
-  console.error(`Usage: node ${process.argv[1]}`);
-  console.error(`       node ${process.argv[1]} [-p port]`);
-  console.error(`       node ${process.argv[1]} [-d]`);
-  process.exit(1);
-}
-
-// Parse arguments and perform appropriate task
-if (process.argv.length > 5) {
-  usageError();
-}
-if (process.argv.length === 2) {
-  http.createServer(server).listen(DEFAULT_PORT_LOCAL, () => {
-    console.log(`Started http server at default port ${DEFAULT_PORT_LOCAL}`);
-  });
-} else if (process.argv.length === 4) {
-  if (process.argv[2] === "-p") {
-    try {
-      http.createServer(server).listen(parseInt(process.argv[3]), () => {
-        console.log(`Started http server at specified port ${process.argv[3]}`);
-      });
-    } catch {
-      usageError();
-    }
-  } else {
-    usageError();
-  }
-} else if (process.argv.length === 3) {
-  if (process.argv[2] === "-d") {
-    https
-      .createServer(
-        {
-          key: readFileSync(filePathPrefix + "/certs/private.key.pem"),
-          cert: readFileSync(filePathPrefix + "/certs/domain.cert.pem"),
-        },
-        server
-      )
-      .listen(443, () => {
-        console.log(`Started https server at 443`);
-      });
-
-    // create an HTTP server on port 80 and redirect to HTTPS
-    http
-      .createServer(function (req, res) {
-        console.log(`Redirecting request to https`);
-        res.writeHead(301, {
-          Location: "https://" + req.headers["host"] + req.url,
-        });
-        res.end();
-      })
-      .listen(80, function (err) {
-        console.log("HTTP Server Listening on Port 80");
-      });
-  } else {
-    usageError();
-  }
 }
