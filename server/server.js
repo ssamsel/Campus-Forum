@@ -2,7 +2,7 @@ import * as timeUtils from "./time.js";
 import * as db from "./database.js";
 import path from "path";
 
-const accountsLoggedIn = { TEST1: true };
+const accountsLoggedIn = {};
 
 // This is to allow for accessing the server from the same IP origin
 // Will probably be modified once this is properly deployed
