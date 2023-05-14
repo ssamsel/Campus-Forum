@@ -2,14 +2,14 @@ import PouchDB from "pouchdb";
 import formidable from "formidable"; // For handling image uploads
 import * as timeUtils from "./time.js";
 import { createHash } from "node:crypto";
-
+import path from "path";
 // This is to ensure that no matter where the server is run from, the path is always valid
 // This regex removes the ending "server.js" and replaces it with the path to the requested resource
-const filePathPrefix = process.argv[1].replace(/server\.js$/, "");
+const filePathPrefix = process.env.PWD;
 
-const accounts_db = new PouchDB(filePathPrefix + "/db/accounts");
-const threads_db = new PouchDB(filePathPrefix + "/db/threads");
-const comments_db = new PouchDB(filePathPrefix + "/db/comments");
+const accounts_db = new PouchDB(path.join(filePathPrefix, "/db/accounts"));
+const threads_db = new PouchDB(path.join(filePathPrefix, "/db/threads"));
+const comments_db = new PouchDB(path.join(filePathPrefix, "/db/comments"));
 
 const accountsLoggedIn = {};
 
@@ -38,21 +38,26 @@ async function accountExists(username) {
   return docs.rows.some((x) => x.id === username);
 }
 
-export async function createAccount(request, response) {
-  const username = Object.keys(request)[0];
-  if (await accountExists(username)) {
-    await sendError(response, 404, `Username '${username}' taken`);
+export async function createAccount(req, res) {
+  const username = req.body.username;
+  const password = req.body.password;
+  if (!username || !password){
+    await sendError(res, 400, `Username or password not supplied in request`);
     return;
   }
 
+  if (await accountExists(username)) {
+    await sendError(res, 400, `Username '${req.body.username}' taken`);
+    return;
+  }
   await accounts_db.put({
     _id: username,
-    pwHash: hashPassword(request[username]),
+    pwHash: hashPassword(password),
     likes: [],
   });
-  response.writeHead(200, headerFields);
-  response.write(JSON.stringify({ success: "Account created" }));
-  response.end();
+  res.writeHead(200, headerFields);
+  res.write(JSON.stringify({ success: "Account created" }));
+  res.end();
 }
 
 async function checkPassword(username, password) {
@@ -60,32 +65,35 @@ async function checkPassword(username, password) {
   return account.pwHash === hashPassword(password);
 }
 
-export async function login(response, options) {
-  const username = Object.keys(options)[0];
+export async function login(req, res) {
+  const username = req.body.username;
+  const password = req.body.password;
+
   if (await accountExists(username)) {
-    if (await checkPassword(username, options[username])) {
+    if (await checkPassword(username, password)) {
       accountsLoggedIn[username] = true;
-      response.writeHead(200, headerFields);
-      response.write(JSON.stringify({ success: "Successfully logged in" }));
-      response.end();
+      res.writeHead(200, headerFields);
+      res.write(JSON.stringify({ success: "Successfully logged in" }));
+      res.end();
       return;
     }
-    await sendError(response, 404, `Invalid password`);
+    await sendError(res, 404, `Invalid password`);
     return;
   }
-  await sendError(response, 404, `Account ${username} does not exist`);
+  await sendError(res, 404, `Account ${username} does not exist`);
 }
 
-export async function logout(request, response) {
-  const username = Object.keys(request)[0];
+export async function logout(req, res) {
+  const username = req.body.username;
+  const password = req.body.password;
   if (
     (await accountExists(username)) &&
-    (await checkPassword(username, request[username]))
+    (await checkPassword(username, password))
   ) {
     delete accountsLoggedIn[username];
   }
-  response.writeHead("200", headerFields);
-  response.end();
+  res.writeHead(200, headerFields);
+  res.end();
 }
 
 async function threadExists(title) {
