@@ -189,6 +189,17 @@ class CommentDB {
     comment.likes += amount;
     await this.db.put(comment, { _rev: comment._rev, force: true });
   }
+
+  async getAuthor(comment_id){
+    const comment = await this.db.get(comment_id);
+    return comment.author;
+  }
+
+  async changeText(comment_id, text){
+    const comment = await this.db.get(comment_id);
+    comment.comment_body = text;
+    await this.db.put(comment, {_rev: comment._rev, force: true});
+  }
 }
 
 const accounts = new AccountDB();
