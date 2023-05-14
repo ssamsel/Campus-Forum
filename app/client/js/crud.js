@@ -102,14 +102,6 @@ export async function dumpThreads(page, amount) {
     return data;
 }
 
-export async function dumpThreadsByAuthor(author) {
-    const response = await fetch(`${ORIGIN}/server/dumpThreadsByAuthor?author=${author}`,
-        { method: 'GET' }
-    );
-    const data = await response.json();
-    return data;
-}
-
 // Updates the like count for comment
 export async function updateLikeCount(comment, username, password) {
     username = encodeURIComponent(username);
