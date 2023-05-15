@@ -1,5 +1,5 @@
 import * as timeUtils from "./time.js";
-import * as db from "./database_pg.js";
+import * as db from "./database.js";
 import path from "path";
 
 const accountsLoggedIn = {};

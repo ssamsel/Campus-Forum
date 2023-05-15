@@ -27,7 +27,7 @@ CREATE TABLE IF NOT EXISTS threads (
   body text,
   time bigint,
   images integer,
-  imagePath text,
+  image_path text,
   posts integer,
   comments text[]
 );`;
@@ -134,7 +134,7 @@ class ThreadTable {
       author,
       text,
       Date.now(),
-      0,
+      imagePath ? 1 : 0,
       imagePath,
       1,
       [],
@@ -170,13 +170,14 @@ class ThreadTable {
     const thread = (
       await pool.query(`SELECT * FROM threads WHERE title = $1`, [title])
     ).rows[0];
+
     return {
       title: thread.title,
       author: thread.author,
       body: thread.body,
       time: thread.time,
       images: thread.images,
-      imagePath: thread.imagePath ? thread.imagePath : undefined,
+      imagePath: thread.image_path ? thread.image_path : undefined,
       posts: thread.posts,
       comments: thread.comments,
     };
