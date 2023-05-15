@@ -42,7 +42,7 @@ The four types of data our application will use are:
 4. Posts about official events can advertise times and locations and will allow other users to press a button to RSVP. This will serve as a way to limit attendees and communicate interest in a specific event to others on campus as well as event organizers.
 
 ### How to Start App ###
-Express, Express-FileUpload, and PostgreSQL are required for this to work.  
+Express, Express-FileUpload, DotENV, and PostgreSQL are required for this to work.  
 Install them with by running the following in the root of this project:  
 `npm install`  
 Run the server by executing `npm start` from the repository root, 

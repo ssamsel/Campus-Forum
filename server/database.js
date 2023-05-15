@@ -1,7 +1,9 @@
 import * as timeUtils from "./time.js";
 import { createHash } from "node:crypto";
+import * as dotenv from "dotenv";
 import pg from "pg";
 
+dotenv.config();
 const pg_options = {
   user: "mmteam",
   password: process.env.PGPASSWORD,
@@ -132,7 +134,7 @@ class ThreadTable {
       author,
       text,
       Date.now(),
-      0,
+      imagePath ? 1: 0,
       imagePath,
       1,
       [],
