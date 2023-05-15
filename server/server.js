@@ -281,7 +281,7 @@ export async function isLoggedIn(req, res) {
 export async function deleteComment(req, res) {
   const username = req.body.username;
   const password = req.body.password;
-  const comment_id = req.body.commentID;
+  const comment_id = req.body.commentID.replace(/_/g, " ");
   
   const checkLogin = await loginValid(username, password);
   if (checkLogin !== true) {
