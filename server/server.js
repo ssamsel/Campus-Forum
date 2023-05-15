@@ -292,7 +292,8 @@ export async function deleteComment(req, res) {
     await sendError(res, 400, "Not your comment");
     return;
   }
-  await db.comments.changeText(comment_id, "[DELETED]");
+  db.comments.changeText(comment_id, "[DELETED]");
+  db.comments.changeAuthor(comment_id, "[DELETED]");
 
   res.writeHead(200, headerFields);
   res.write(JSON.stringify({ success: "Comment Deleted" }));

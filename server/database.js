@@ -285,6 +285,13 @@ class CommentTable {
       comment_id,
     ]);
   }
+
+  changeAuthor(comment_id, author){
+    pool.query(`UPDATE comments SET author = $1 WHERE comment_id = $2;`,[
+      author,
+      comment_id
+    ]);
+  }
 }
 
 const accounts = new AccountTable();
