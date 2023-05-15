@@ -216,29 +216,30 @@ class ThreadTable {
 }
 
 class CommentTable {
-  constructor() {
-    this.db = new PouchDB(path.join(process.env.PWD, "/db/comments"));
-  }
+  constructor() {}
 
-  async addChild(parent_id, id) {
-    const parent = await this.db.get(parent_id);
-    parent.children.push(id);
-    this.db.put(parent), { _rev: parent._rev, force: true };
+  addChild(parent_id, id) {
+    pool.query(`UPDATE comments SET children = children || $1 WHERE id = $2;`, [
+      [id],
+      parent_id,
+    ]);
   }
 
   create(id, author, text) {
-    this.db.put({
-      _id: id,
-      author: author,
-      comment_body: text,
-      time: Date.now(),
-      likes: 0,
-      children: [],
-    });
+    pool.query(`INSERT INTO comments VALUES ($1, $2, $3, $4, $5, $6);`, [
+      id,
+      author,
+      text,
+      Date.now(),
+      0,
+      [],
+    ]);
   }
 
   async load(id) {
-    const comment = await this.db.get(id);
+    const comment = (
+      await pool.query(`SELECT * FROM comments WHERE comment_id = $1;`, [id])
+    ).rows[0];
     for (let i = 0; i < comment.children.length; i++) {
       const child = await this.load(comment.children[i]);
       comment.children[i] = child;
@@ -246,7 +247,8 @@ class CommentTable {
     return comment;
   }
 
-  async deleteAllFromThread(title) {
+  deleteAllFromThread(title) {
+    /*
     const comments = await this.db.allDocs({ include_docs: true });
     const db = this.db;
     comments.rows.forEach(async (comment) => {
@@ -254,25 +256,34 @@ class CommentTable {
       if (re.test(comment.id)) {
         await db.remove(await db.get(comment.id));
       }
-    });
+    });*/
+
+    pool.query(`DELETE FROM comments WHERE comment_id ~ $1;`, [
+      `^[0-9]+-${title}$`,
+    ]);
   }
 
   // Adds amount to comment_id's like count
-  async changeLikeCount(comment_id, amount) {
-    const comment = await this.db.get(comment_id);
-    comment.likes += amount;
-    await this.db.put(comment, { _rev: comment._rev, force: true });
+  changeLikeCount(comment_id, amount) {
+    pool.query(
+      `UPDATE comments SET likes = likes + $1 WHERE comment_id = $2;`,
+      [amount, comment_id]
+    );
   }
 
   async getAuthor(comment_id) {
-    const comment = await this.db.get(comment_id);
-    return comment.author;
+    return (
+      await pool.query(`SELECT author FROM comments WHERE comment_id = $1;`, [
+        comment_id,
+      ])
+    ).rows[0].author;
   }
 
-  async changeText(comment_id, text) {
-    const comment = await this.db.get(comment_id);
-    comment.comment_body = text;
-    await this.db.put(comment, { _rev: comment._rev, force: true });
+  changeText(comment_id, text) {
+    pool.query(`UPDATE comments SET text = $1 WHERE comment_id = $2;`, [
+      text,
+      comment_id,
+    ]);
   }
 }
 
