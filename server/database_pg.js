@@ -150,7 +150,7 @@ class ThreadTable {
 
   // Increments post count and returns the new value
   async incrementPostCount(title) {
-    const thread = await pool.query(
+    await pool.query(
       `UPDATE threads SET posts = posts + 1 WHERE title = $1;`,
       [title]
     );
@@ -219,7 +219,7 @@ class CommentTable {
   constructor() {}
 
   addChild(parent_id, id) {
-    pool.query(`UPDATE comments SET children = children || $1 WHERE id = $2;`, [
+    pool.query(`UPDATE comments SET children = children || $1 WHERE comment_id = $2;`, [
       [id],
       parent_id,
     ]);
@@ -280,7 +280,7 @@ class CommentTable {
   }
 
   changeText(comment_id, text) {
-    pool.query(`UPDATE comments SET text = $1 WHERE comment_id = $2;`, [
+    pool.query(`UPDATE comments SET comment_body = $1 WHERE comment_id = $2;`, [
       text,
       comment_id,
     ]);
