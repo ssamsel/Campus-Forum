@@ -25,7 +25,7 @@ CREATE TABLE IF NOT EXISTS threads (
   title text,
   author text,
   body text,
-  time integer,
+  time bigint,
   images integer,
   imagePath text,
   posts integer,
@@ -36,7 +36,7 @@ CREATE TABLE IF NOT EXISTS comments (
   comment_id text,
   author text,
   comment_body text,
-  time integer,
+  time bigint,
   likes integer,
   children text[]
 );`;
@@ -70,8 +70,11 @@ class AccountTable {
 
   // Returns true iff an account with username exists
   async exists(username) {
-    const users = await pool.query(`SELECT username FROM accounts;`);
-    return users.rows.some((x) => x.username === username);
+    const users = await pool.query(
+      `SELECT username FROM accounts WHERE username = $1;`,
+      [username]
+    );
+    return users.rows.length != 0;
   }
 
   // Puts a new user into db
@@ -115,71 +118,78 @@ class AccountTable {
 }
 
 class ThreadTable {
-  constructor() {
-    this.db = new PouchDB(path.join(process.env.PWD, "/db/threads"));
-  }
+  constructor() {}
 
   async exists(title) {
-    const docs = await this.db.allDocs({ include_docs: true });
-    return docs.rows.some((x) => x.id === title);
+    const docs = await pool.query(
+      `SELECT title FROM threads WHERE title = $1`,
+      [title]
+    );
+    return docs.rows.length != 0;
   }
 
   create(author, title, text, imagePath) {
-    this.db.put({
-      _id: title,
-      author: author,
-      body: text,
-      time: Date.now(),
-      images: imagePath ? 1 : 0,
-      imagePath: imagePath,
-      posts: 1,
-      comments: [],
-    });
+    pool.query(`INSERT INTO threads VALUES ($1, $2, $3, $4, $5, $6, $7, $8);`, [
+      title,
+      author,
+      text,
+      Date.now(),
+      0,
+      imagePath,
+      1,
+      [],
+    ]);
   }
 
   async updateTimeStamp(title) {
-    const thread = await this.db.get(title);
-    thread.time = Date.now();
-    this.db.put(thread, { _rev: thread._rev, force: true });
+    await pool.query(`UPDATE threads SET time = $1 WHERE title = $2;`, [
+      Date.now(),
+      title,
+    ]);
   }
 
   // Increments post count and returns the new value
   async incrementPostCount(title) {
-    const thread = await this.db.get(title);
-    thread.posts++;
-    this.db.put(thread, { _rev: thread._rev, force: true });
-    return thread.posts;
+    const thread = await pool.query(
+      `UPDATE threads SET posts = posts + 1 WHERE title = $1;`,
+      [title]
+    );
+    return (
+      await pool.query(`SELECT posts FROM threads WHERE title = $1;`, [title])
+    ).rows[0].posts;
   }
 
-  async addTopLevelComment(title, comment_id) {
-    const thread = await this.db.get(title);
-    thread.comments.push(comment_id);
-    this.db.put(thread, { _rev: thread._rev, force: true });
+  addTopLevelComment(title, comment_id) {
+    pool.query(
+      `UPDATE threads SET comments = comments || $1 WHERE title = $2;`,
+      [[comment_id], title]
+    );
   }
 
   async get(title) {
-    const thread = await this.db.get(title);
+    const thread = (
+      await pool.query(`SELECT * FROM threads WHERE title = $1`, [title])
+    ).rows[0];
     return {
-      title: thread._id,
+      title: thread.title,
       author: thread.author,
       body: thread.body,
       time: thread.time,
       images: thread.images,
-      imagePath: thread.imagePath,
+      imagePath: thread.imagePath ? thread.imagePath : undefined,
       posts: thread.posts,
       comments: thread.comments,
     };
   }
 
-  async delete(title) {
-    await this.db.remove(await this.db.get(title));
+  delete(title) {
+    pool.query(`DELETE FROM threads WHERE title = $1`, [title]);
   }
 
   async dump(amount, page) {
-    const allDocs = await this.db.allDocs({ include_docs: true });
-    let threads = [];
-    allDocs.rows.forEach((x) => threads.push(x.doc));
-    threads.sort(timeUtils.compare);
+    let threads = (
+      await pool.query(`SELECT * FROM threads ORDER BY time DESC;`)
+    ).rows;
 
     // Get the page requested, if applicable
     if (amount !== undefined && page != undefined && amount !== "All") {
@@ -191,7 +201,7 @@ class ThreadTable {
     return threads.map((x) => {
       return {
         author: x.author,
-        title: x._id,
+        title: x.title,
         body: x.body,
         time: timeUtils.convertToRecencyString(x.time),
         images: x.images,
@@ -201,8 +211,7 @@ class ThreadTable {
   }
 
   async total() {
-    const allDocs = await this.db.allDocs({ include_docs: true });
-    return allDocs.total_rows;
+    return (await pool.query(`SELECT title FROM threads;`)).rows.length;
   }
 }
 
