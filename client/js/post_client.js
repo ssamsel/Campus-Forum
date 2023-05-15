@@ -82,7 +82,7 @@ async function loadPost() {
 
 // Creates the html for comment and puts it in the page
 function generateCommentHTML(comment) {
-  let commentHTML = `<div id = comment-${comment._id.replaceAll(/ /g, "_")}>
+  let commentHTML = `<div id = comment-${comment.comment_id.replaceAll(/ /g, "_")}>
     <p class="medium-text">${comment.author}</p>
     <p class="small-text">${comment.time}</p>
     <div class="vl"></div>
@@ -94,10 +94,10 @@ function generateCommentHTML(comment) {
       Like
     </button>
     <div style="display: inline-block; width: 50px"></div>
-    <button class="reply btn" id="reply-${comment._id.split("-")[0]}">
+    <button class="reply btn" id="reply-${comment.comment_id.split("-")[0]}">
       <img class="comment" src="img/comment.png" /> Reply
     </button>
-    <button class="delete-comment btn" id="delete-${comment._id.replaceAll(
+    <button class="delete-comment btn" id="delete-${comment.comment_id.replaceAll(
       / /g,
       "_"
     )}" hidden="hidden">${comment.author}</button>
