@@ -225,8 +225,8 @@ class CommentTable {
     ]);
   }
 
-  create(id, author, text) {
-    pool.query(`INSERT INTO comments VALUES ($1, $2, $3, $4, $5, $6);`, [
+  async create(id, author, text) {
+    await pool.query(`INSERT INTO comments VALUES ($1, $2, $3, $4, $5, $6);`, [
       id.replace(/_/g, " "),
       author,
       text,
@@ -248,16 +248,6 @@ class CommentTable {
   }
 
   deleteAllFromThread(title) {
-    /*
-    const comments = await this.db.allDocs({ include_docs: true });
-    const db = this.db;
-    comments.rows.forEach(async (comment) => {
-      const re = new RegExp(`^\\d+\-${title}$`);
-      if (re.test(comment.id)) {
-        await db.remove(await db.get(comment.id));
-      }
-    });*/
-
     pool.query(`DELETE FROM comments WHERE comment_id ~ $1;`, [
       `^[0-9]+-${title}$`,
     ]);
