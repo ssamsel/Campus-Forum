@@ -220,14 +220,14 @@ class CommentTable {
 
   addChild(parent_id, id) {
     pool.query(`UPDATE comments SET children = children || $1 WHERE comment_id = $2;`, [
-      [id],
+      [id.replace(/_/g, " ")],
       parent_id,
     ]);
   }
 
   create(id, author, text) {
     pool.query(`INSERT INTO comments VALUES ($1, $2, $3, $4, $5, $6);`, [
-      id,
+      id.replace(/_/g, " "),
       author,
       text,
       Date.now(),
@@ -238,7 +238,7 @@ class CommentTable {
 
   async load(id) {
     const comment = (
-      await pool.query(`SELECT * FROM comments WHERE comment_id = $1;`, [id])
+      await pool.query(`SELECT * FROM comments WHERE comment_id = $1;`, [id.replace(/_/g, " ")])
     ).rows[0];
     for (let i = 0; i < comment.children.length; i++) {
       const child = await this.load(comment.children[i]);
@@ -267,14 +267,14 @@ class CommentTable {
   changeLikeCount(comment_id, amount) {
     pool.query(
       `UPDATE comments SET likes = likes + $1 WHERE comment_id = $2;`,
-      [amount, comment_id]
+      [amount, comment_id.replace(/_/g, " ")]
     );
   }
 
   async getAuthor(comment_id) {
     return (
       await pool.query(`SELECT author FROM comments WHERE comment_id = $1;`, [
-        comment_id,
+        comment_id.replace(/_/g, " "),
       ])
     ).rows[0].author;
   }
@@ -282,14 +282,14 @@ class CommentTable {
   changeText(comment_id, text) {
     pool.query(`UPDATE comments SET comment_body = $1 WHERE comment_id = $2;`, [
       text,
-      comment_id,
+      comment_id.replace(/_/g, " "),
     ]);
   }
 
   changeAuthor(comment_id, author){
     pool.query(`UPDATE comments SET author = $1 WHERE comment_id = $2;`,[
       author,
-      comment_id
+      comment_id.replace(/_/g, " ")
     ]);
   }
 }
