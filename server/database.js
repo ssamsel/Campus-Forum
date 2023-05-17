@@ -5,11 +5,12 @@ import pg from "pg";
 
 dotenv.config();
 const pg_options = {
-  user: process.env.PGUSER,
+
+  user: process.env.PGUSER || "mmteam",
   password: process.env.PGPASSWORD,
   host: "127.0.0.1",
-  database: process.env.PGDB,
-  port: 5432,
+  database: process.env.PGDATABASE || "mm",
+  port: process.env.PGPORT || 5432,
 };
 
 const pool = new pg.Pool(pg_options);
