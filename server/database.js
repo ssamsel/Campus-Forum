@@ -3,7 +3,9 @@ import { createHash } from "node:crypto";
 import * as dotenv from "dotenv";
 import pg from "pg";
 
-dotenv.config();
+dotenv.config(); // Load environment variables from .env
+
+// PostgreSQL connection configuration
 const pg_options = {
   user: process.env.PGUSER || "mmteam",
   password: process.env.PGPASSWORD,
@@ -11,9 +13,11 @@ const pg_options = {
   database: process.env.PGDATABASE || "mm",
   port: process.env.PGPORT || 5432,
 };
-const pool = new pg.Pool(pg_options);
-const client = new pg.Client(pg_options);
+const pool = new pg.Pool(pg_options); // Used to actually query the db
+const client = new pg.Client(pg_options); // Used to set up tables if needed
 
+// SQL Queries to create the tables
+// Also provide a visual representation to reference table structure
 const account_table = `
 CREATE TABLE IF NOT EXISTS accounts (
   username text,
@@ -41,6 +45,7 @@ CREATE TABLE IF NOT EXISTS comments (
   children text[]
 );`;
 
+// Attempt to connect to database and give helpful error messages if fails
 try {
   await client.connect();
 } catch (err) {
@@ -50,6 +55,7 @@ try {
   process.exit(1);
 }
 
+// Try to create the tables, error if not
 try {
   await client.query(account_table);
   await client.query(thread_table);
@@ -61,10 +67,13 @@ try {
 }
 client.end();
 
+// Used to create base64 encoded sha256 of a password
+// Returns a base64 string
 function hashPassword(password) {
   return createHash("sha256").update(password).digest("base64");
 }
 
+// Class to abstract account db functions
 class AccountTable {
   constructor() {}
 
@@ -87,6 +96,7 @@ class AccountTable {
   }
 
   // Checks password of username in db
+  // Returns true if is correct
   async checkPassword(username, password) {
     const account = await pool.query(
       `SELECT username,hash FROM accounts WHERE username = '${username}';`
@@ -94,7 +104,8 @@ class AccountTable {
     return account.rows[0].hash === hashPassword(password);
   }
 
-  // Toggles whether a user liked a comment or not, and returns [1 || -1], used to update like count in commentDB
+  // Toggles whether a user liked a comment or not
+  // returns either 1 or -1, which is used to update like count in comment db
   async toggleCommentLike(username, comment) {
     let ret = 0;
     const account = (
@@ -102,13 +113,15 @@ class AccountTable {
         `SELECT username,likes FROM accounts WHERE username = '${username}';`
       )
     ).rows[0];
-    if (account.likes.some((x) => x === comment)) {
+
+    if (account.likes.some((x) => x === comment)) { // If user has liked this comment
       ret = -1;
-      account.likes.splice(account.likes.indexOf(comment), 1);
-    } else {
+      account.likes.splice(account.likes.indexOf(comment), 1); // Remove it from their likes array
+    } else { // Otherwise the user has not liked this comment
       ret = 1;
-      account.likes.push(comment);
+      account.likes.push(comment); // Add comment to their likes
     }
+    // Update the database
     pool.query(`UPDATE accounts SET likes = $1 WHERE username = $2;`, [
       account.likes,
       username,
@@ -117,9 +130,11 @@ class AccountTable {
   }
 }
 
+// Class to abstract thread db functions
 class ThreadTable {
   constructor() {}
 
+  // Returns true iff thread with title exists
   async exists(title) {
     const docs = await pool.query(
       `SELECT title FROM threads WHERE title = $1`,
@@ -128,6 +143,7 @@ class ThreadTable {
     return docs.rows.length != 0;
   }
 
+  // Creates a new thread
   create(author, title, text, imagePath) {
     pool.query(`INSERT INTO threads VALUES ($1, $2, $3, $4, $5, $6, $7, $8);`, [
       title,
@@ -141,6 +157,7 @@ class ThreadTable {
     ]);
   }
 
+  // Updates the time of thread ("Latest Post" time in front-end)
   async updateTimeStamp(title) {
     await pool.query(`UPDATE threads SET time = $1 WHERE title = $2;`, [
       Date.now(),
@@ -159,6 +176,7 @@ class ThreadTable {
     ).rows[0].posts;
   }
 
+  // Adds a comment to list of comment tree roots to a thread
   addTopLevelComment(title, comment_id) {
     pool.query(
       `UPDATE threads SET comments = comments || $1 WHERE title = $2;`,
@@ -166,6 +184,7 @@ class ThreadTable {
     );
   }
 
+  // Returns all stored info regarding a thread
   async get(title) {
     const thread = (
       await pool.query(`SELECT * FROM threads WHERE title = $1`, [title])
@@ -182,10 +201,14 @@ class ThreadTable {
     };
   }
 
+  // Deletes thread
   delete(title) {
     pool.query(`DELETE FROM threads WHERE title = $1`, [title]);
   }
 
+  // Returns array which each entry being the information shown in front-end
+  // Limits which threads are returned to a virtual page defined by page and amount
+  // if amount is "All", or page or amount are undefined, dumps all threads
   async dump(amount, page) {
     let threads = (
       await pool.query(`SELECT * FROM threads ORDER BY time DESC;`)
@@ -203,21 +226,25 @@ class ThreadTable {
         author: x.author,
         title: x.title,
         body: x.body,
-        time: timeUtils.convertToRecencyString(x.time),
+        time: timeUtils.convertToRecencyString(x.time), // Convert UNIX millis to "XX minutes ago" or similar
         images: x.images,
         posts: x.posts,
       };
     });
   }
 
+  // Returns total number of threads
   async total() {
     return (await pool.query(`SELECT title FROM threads;`)).rows.length;
   }
 }
 
+// Class to abstract comment db functions
+// Regex are used to ensure consistency of id from back-end calls
 class CommentTable {
   constructor() {}
 
+  // Adds a comment id to a comment's children array
   addChild(parent_id, id) {
     pool.query(`UPDATE comments SET children = children || $1 WHERE comment_id = $2;`, [
       [id.replace(/_/g, " ")],
@@ -225,6 +252,7 @@ class CommentTable {
     ]);
   }
 
+  // Creates a new row for a new comment
   async create(id, author, text) {
     await pool.query(`INSERT INTO comments VALUES ($1, $2, $3, $4, $5, $6);`, [
       id.replace(/_/g, " "),
@@ -236,6 +264,7 @@ class CommentTable {
     ]);
   }
 
+  // Returns a comment with all its children recursively nested in its children array
   async load(id) {
     const comment = (
       await pool.query(`SELECT * FROM comments WHERE comment_id = $1;`, [id.replace(/_/g, " ")])
@@ -247,6 +276,7 @@ class CommentTable {
     return comment;
   }
 
+  // Deletes comments corresponding to a thread
   deleteAllFromThread(title) {
     pool.query(`DELETE FROM comments WHERE comment_id ~ $1;`, [
       `^[0-9]+-${title}$`,
@@ -261,6 +291,7 @@ class CommentTable {
     );
   }
 
+  // Returns the username of the comment creator
   async getAuthor(comment_id) {
     return (
       await pool.query(`SELECT author FROM comments WHERE comment_id = $1;`, [
@@ -269,6 +300,8 @@ class CommentTable {
     ).rows[0].author;
   }
 
+  // Changes the text of a comment to text
+  // Used to showy deletion in UI
   changeText(comment_id, text) {
     pool.query(`UPDATE comments SET comment_body = $1 WHERE comment_id = $2;`, [
       text,
@@ -276,6 +309,8 @@ class CommentTable {
     ]);
   }
 
+  // Changes the author of a comment to author
+  // Used to showy deletion in UI
   changeAuthor(comment_id, author){
     pool.query(`UPDATE comments SET author = $1 WHERE comment_id = $2;`,[
       author,
