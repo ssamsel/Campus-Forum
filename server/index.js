@@ -4,12 +4,15 @@ import * as https from "https";
 import * as http from "http";
 import * as fs from "fs";
 import path from "path";
+import dotenv from "dotenv";
 import * as server from "./server.js";
 
+dotenv.config(); // Load environment variables from .env
+
 const app = express();
-app.use(fileUpload({ createParentPath: true }));
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
+app.use(fileUpload({ createParentPath: true })); // Middleware for image uploads
+app.use(express.json()); // Middleware for JSON body parsing
+app.use(express.urlencoded({ extended: false })); // Middleware for URL query processing
 
 // Static routes
 app.use("/", express.static("client"));
