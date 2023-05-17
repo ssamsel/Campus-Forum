@@ -58,7 +58,7 @@ createAccountButton.addEventListener("click", async (e) => {
 
   if (invalidPw(password)) {
     passwordFeedback.innerText = "Password does not meet criteria, try again";
-    // (Must be greater than 5 characters, contain at least one lowercase letter, contain at least one uppercase letter, contain at least one number, and contain at least one special character)
+    alert("Password must be greater than 5 characters, contain at least one lowercase letter, contain at least one uppercase letter, contain at least one number, and contain at least one special character");
     passwordBox.classList.add("is-invalid");
     return;
   }
