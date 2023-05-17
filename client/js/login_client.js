@@ -6,6 +6,8 @@ const usernameBox = document.getElementById("username");
 const passwordBox = document.getElementById("password");
 const outputDiv = document.getElementById("output");
 const buttons = document.getElementById("buttons");
+const usernameFeedback = document.getElementById("username-feedback");
+const passwordFeedback = document.getElementById("password-feedback");
 
 if (window.sessionStorage.getItem("user") !== null) {
   buttons.innerHTML =
@@ -55,12 +57,14 @@ createAccountButton.addEventListener("click", async (e) => {
   const password = passwordBox.value;
 
   if (invalidPw(password)) {
-    outputDiv.innerHTML =
-      "<h1>Password does not meet criteria, try again. (Must be greater than 5 characters, contain at least one lowercase letter, contain at least one uppercase letter, contain at least one number, and contain at least one special character) </h1>";
+    passwordFeedback.innerText = "Password does not meet criteria, try again";
+    // (Must be greater than 5 characters, contain at least one lowercase letter, contain at least one uppercase letter, contain at least one number, and contain at least one special character)
+    passwordBox.classList.add("is-invalid");
     return;
   }
   if (invalidUsername(username)) {
-    outputDiv.innerHTML = "<h1>Invalid Username, try again</h1>";
+    usernameFeedback.innerText = "Invalid Username, try again";
+    usernameBox.classList.add("is-invalid");
     return;
   }
 
