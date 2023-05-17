@@ -58,11 +58,12 @@ results_per_page.addEventListener("change", () => {
   );
 });
 
-// Get the threads and put them in the page
+// Get the threads
 const dumpedThreads = await crud.dumpThreads(page, amount);
 let threads_html =
   dumpedThreads.length !== 0
     ? ""
+    // This is an empty thread to make the UI look better if there are no threads
     : `<div class="container-fluid forum bottom-row">
         <div class="w-50"></div>
         <div class="col-sm row-item">
@@ -78,6 +79,7 @@ let threads_html =
         </div>
       </div>`;
 
+// Put each thread into the page
 dumpedThreads.forEach((x, idx) => {
   const last = idx === dumpedThreads.length - 1 ? "bottom-row" : "";
   const template = `<div class="container-fluid forum ${last}">
@@ -102,6 +104,7 @@ dumpedThreads.forEach((x, idx) => {
 });
 threads_div.innerHTML = threads_html;
 
+// Handle thread submission event
 submit_button.addEventListener("click", async (e) => {
   const response = await crud.createThread(
     username,
@@ -115,7 +118,10 @@ submit_button.addEventListener("click", async (e) => {
     return;
   }
   output_div.innerHTML = `<h1>${response.success}</h1>`;
+
+  // Clear text input boxes to make it more evident it was posted
   create_post_title.value = "";
   create_post_text.value = "";
+
   window.location.reload();
 });

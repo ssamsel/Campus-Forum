@@ -2,7 +2,7 @@ import * as timeUtils from "./time.js";
 import * as db from "./database.js";
 import path from "path";
 
-const accountsLoggedIn = {};
+const accountsLoggedIn = {}; // Used to keep track of who is logged in
 
 // This is to allow for accessing the server from the same IP origin
 // Will probably be modified once this is properly deployed
@@ -45,7 +45,7 @@ export async function login(req, res) {
 
   if (await db.accounts.exists(username)) {
     if (await db.accounts.checkPassword(username, password)) {
-      accountsLoggedIn[username] = true;
+      accountsLoggedIn[username] = true; // Log the user in
       res.writeHead(200, headerFields);
       res.write(JSON.stringify({ success: "Successfully logged in" }));
       res.end();
@@ -67,33 +67,39 @@ export async function logout(req, res) {
   res.end();
 }
 
+// Returns an error or true if username and password pair are good
 async function loginValid(username, password) {
+  const errNoAuth = "You must be logged in for this operation.";
+  const errVague = "Bad Request"; // This error message is triggered when it is likely malicious activity is occurring
+  const errNotLoggedIn = "You must be logged in for this operation.";
   if (username === null || password === null) {
-    return "You must be logged in for this operation.";
+    return errNoAuth;
   }
   if (username === "null" || password === "null") {
-    return "You must be logged in for this operation.";
+    return errNoAuth;
   }
 
   if (
     !(await db.accounts.exists(username)) ||
     !(await db.accounts.checkPassword(username, password))
   ) {
-    return "Bad Request";
+    return errVague;
   }
 
   if (accountsLoggedIn[username] !== true) {
-    return "You must be logged in to create a thread";
+    return errNotLoggedIn;
   }
 
   return true;
 }
 
+// Download the image from client and move it to uploads folder
+// Returns the HTTP path of the file
 function handleImageUpload(req) {
   if (!req.files) {
     return undefined;
   }
-  const filepath = `/uploads/${Date.now()}`;
+  const filepath = `/uploads/${Date.now()}`; // Create unique name with UNIX millis
   const { image } = req.files;
   image.mv(path.join(process.env.PWD, filepath));
   return filepath;
@@ -157,7 +163,10 @@ export async function createComment(req, res) {
   const num = await db.threads.incrementPostCount(req.body.post_id);
   await db.threads.updateTimeStamp(req.body.post_id);
 
+  // Create a comment id in the format n-post_title
   const comment_id = (num - 1).toString() + "-" + req.body.post_id;
+
+  // Handle parent/child cases of comment creation
   if (req.body.post_parent === "true") {
     await db.threads.addTopLevelComment(req.body.parent_id, comment_id);
   } else {
@@ -199,6 +208,7 @@ export async function getComments(req, res) {
 
   const post = await db.threads.get(req.query.post_id);
   const raw_comments = [];
+  // Load all children comments into each parent
   for (let i = 0; i < post.comments.length; i++) {
     raw_comments.push(await db.comments.load(post.comments[i]));
   }
@@ -209,6 +219,7 @@ export async function getComments(req, res) {
     return x;
   }
 
+  // Map UNIX millis to a "XX minutes ago" or similar string
   const comments = raw_comments.map(recursiveMapHOF);
 
   res.writeHead(200, headerFields);
@@ -278,17 +289,20 @@ export async function isLoggedIn(req, res) {
   res.end();
 }
 
+// This doesn't actually delete a comment as that would delete all its children
+// Instead it changes the body and author to "[DELETED]"
+// "[DELETED]" is also an invalid username, so users cannot make fake deleted comments
 export async function deleteComment(req, res) {
   const username = req.body.username;
   const password = req.body.password;
   const comment_id = req.body.commentID;
-  
+
   const checkLogin = await loginValid(username, password);
   if (checkLogin !== true) {
     await sendError(res, 400, checkLogin);
     return;
   }
-  if ((await db.comments.getAuthor(comment_id)) !== username){
+  if ((await db.comments.getAuthor(comment_id)) !== username) {
     await sendError(res, 400, "Not your comment");
     return;
   }

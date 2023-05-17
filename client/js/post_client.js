@@ -114,6 +114,7 @@ function generateCommentHTML(comment) {
   return commentHTML;
 }
 
+// Puts the comments into the page and sets their event handlers
 async function loadComments() {
   const commentData = await crud.getComments(postId);
   comments.innerHTML = commentData.comments.reduce(
@@ -123,6 +124,7 @@ async function loadComments() {
   setCommentEventHandlers();
 }
 
+// If posts loads successfully, then load the comments
 if ((await loadPost()) === 0) {
   await loadComments();
 }
@@ -194,6 +196,7 @@ function setCommentEventHandlers() {
         });
     });
   });
+
   document.querySelectorAll(".delete-comment").forEach((button) => {
     if (button.innerText !== username) {
       return;
