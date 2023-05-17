@@ -13,8 +13,10 @@ const pg_options = {
   database: process.env.PGDATABASE || "mm",
   port: process.env.PGPORT || 5432,
 };
+
 const pool = new pg.Pool(pg_options); // Used to actually query the db
 const client = new pg.Client(pg_options); // Used to set up tables if needed
+
 
 // SQL Queries to create the tables
 // Also provide a visual representation to reference table structure
