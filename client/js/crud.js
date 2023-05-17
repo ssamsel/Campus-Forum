@@ -165,6 +165,7 @@ export async function isLoggedIn(username) {
   return data;
 }
 
+// Deletes a comment
 export async function deleteComment(commentID, username, password) {
   const response = await fetch(`/server/deleteComment`, {
     method: "DELETE",
@@ -181,6 +182,7 @@ export async function deleteComment(commentID, username, password) {
   return data;
 }
 
+// Returns the total number of threads
 export async function numThreads() {
   const response = await fetch(`/server/numThreads`, {
     method: "GET",
