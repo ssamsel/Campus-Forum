@@ -41,14 +41,72 @@ The four types of data our application will use are:
 3. Users will be able to like posts and comments. There will be a button that when pressed will like the post or comment. These likes will be kept track of and can be used to make good, relevant posts and comments more visible to other users.
 4. Posts about official events can advertise times and locations and will allow other users to press a button to RSVP. This will serve as a way to limit attendees and communicate interest in a specific event to others on campus as well as event organizers.
 
-### How to Start App ###
-Express, Express-FileUpload, DotENV, and PostgreSQL are required for this to work.  
+## Running/Accessing the Website ##
+Shymon will have this deployed and running on his server at [gutek.xyz](https://gutek.xyz)  
+The 'server' is just an old computer running on his home network. 
+Unfortunately the network is over coax and not fiber, so the uplink is slow. Its bandwidth is also shared with his roommates, so the website may be slow or inaccessible at times.  
+### Starting the Website on Your Own Machine ###
+#### Libraries ####
+The project uses the following libraries: 
+- Express
+- Express-FileUpload
+- DotENV
+- PG (PostgreSQL)   
+
 Install them with by running the following in the root of this project:  
 `npm install`  
+#### Database Installation ####
+The website back-end connects to a PostgreSQL 15 server running on the same machine.  
+The following instructions will vary significantly between operating systems and other factors  
+I will give examples for Arch Linux, FreeBSD, and macOS (via brew, as best as I can)
+1. Install PostgreSQL 15
+    - Arch Linux: `$ sudo pacman -S postgresql`
+    - FreeBSD: `# pkg install postgresql15-server postgresql15-client`
+    - macOS: `$ brew install postgresql@15`
+    - See the [PostgreSQL Download Page](https://www.postgresql.org/download/) for more information
+2. Initialize the database
+    - Arch Linux: `$ sudo su - postgres -c "initdb --locale en_US.UTF-8 -D '/var/lib/postgres/data'"`
+    - FreeBSD: `# /usr/local/etc/rc.d/postgresql initdb`
+    - macOS: You may or may not have to do this, read [this](https://wiki.postgresql.org/wiki/Homebrew) for more information
+3. Start the daemon/service
+    - Start one time (will not start on next boot)
+        - Arch Linux: `$ sudo systemctl start postgresql`
+        - FreeBSD: `# service postgresql onestart`
+        - macOS: `$ brew services run postgresql`
+    - Have it start on boot
+        - Arch Linux: `$ sudo systemctl enable postgressql --now`
+        - FreeBSD: `# sysrc postgresql_enable="YES"` and `# service postgresql start`
+        - macOS: `$ brew service start postgresql`
+#### Database Setup ####
+1. Enable encrypted authentication (you can skip this but its good practice)
+    - This again varies a ton so I will only give a general idea of how to do it
+    - Find the "pg_hba.conf" file (usually somewhere in `/var` on your machine) and find these lines:
+        >`# TYPE  DATABASE        USER            ADDRESS                 METHOD`  
+        >`# "local" is for Unix domain socket connections only`  
+        >`local   all             all                                     trust`  
+        >`# IPv4 local connections:`  
+        >`host    all             all             127.0.0.1/32            trust`  
+        >`# IPv6 local connections:`  
+        >`host    all             all             ::1/128                 trust`  
+    - Under IPv4 and IPv6, change `trust` to `md5`
+    - Restart the PostgreSQL service
+2.  Configure the `postgres` user (this is the "root" user for postgres)
+    - As the root (use sudo or doas or whatever is applicable) user run `# su - postgres`
+    - Run `psql`, your prompt should look something like this: `postgres=# `
+    - Set a password for the postgres user with `\password postgres`
+    - Create a new database: `CREATE DATABASE <name of your db> ;`, the default for this project is `mm`
+    - Create a new user: `CREASE USER <username> WITH ENCRYPTED PASSWORD '<password>' ;`, default username for this project is `mmteam`
+    - Grant the user access to the database: `GRANT ALL PRIVILEGES ON DATABASE <name of your db> TO <username> ;`
+    - Connect to the database: `\c <name of your db>`
+    - Grant the user access to the public schema: `GRANT ALL ON SCHEMA public TO <username> ;`
+    - Exit the prompt with: `\q`
+    - Put your password in your .env file: `PGPASSWORD=<password>`
+    - Put username and database name in .env as well if you changed the defaults
+3. The `server/database.js` file will create all tables for you, so you are now finally done with configuration :)
+#### Starting the Website ####
 Run the server by executing `npm start` from the repository root, 
-or run for deployment over https with `npm run deploy`  (put keys in /certs)   
+or run for deployment over https with `npm run deploy`  (put SSL keys in `/certs`)   
 Navigate to [localhost:3000](http://localhost:3000) in your web browser to see the home/forums page and use the application.  
-Sometimes Shymon will have this deployed and running on his server at [gutek.xyz](https://gutek.xyz)  
 ### License ###
 
 [Apache V2 License](https://opensource.org/license/apache-2-0/)
