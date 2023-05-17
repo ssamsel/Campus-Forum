@@ -1,5 +1,6 @@
 import * as crud from "./crud.js";
 
+// Adds username and logout button to top right corner
 export async function integrateAuthUI() {
   const username = window.sessionStorage.getItem("user");
   if (await isAuthenticated()) {
