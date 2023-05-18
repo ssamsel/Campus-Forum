@@ -52,6 +52,7 @@ The project uses the following libraries:
 - Express-FileUpload
 - DotENV
 - PG (PostgreSQL)   
+- Morgan
 
 Install them with by running the following in the root of this project:  
 `npm install`  
