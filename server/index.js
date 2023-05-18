@@ -5,6 +5,7 @@ import * as http from "http";
 import * as fs from "fs";
 import path from "path";
 import dotenv from "dotenv";
+import logger from "morgan";
 import * as server from "./server.js";
 
 dotenv.config(); // Load environment variables from .env
@@ -13,7 +14,7 @@ const app = express();
 app.use(fileUpload({ createParentPath: true })); // Middleware for image uploads
 app.use(express.json()); // Middleware for JSON body parsing
 app.use(express.urlencoded({ extended: false })); // Middleware for URL query processing
-
+app.use(logger(process.env.LOG_TYPE || "combined"));
 // Static routes
 app.use("/", express.static("client"));
 app.use("/uploads", express.static("uploads"));

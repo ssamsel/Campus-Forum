@@ -136,6 +136,11 @@ export async function createThread(req, res) {
     await sendError(res, 400, "Title may not contain dashes nor underscores");
     return;
   }
+  if (/'|"/.test(title)) {
+    await sendError(res, 400, "Title may not contain quotes");
+    return;
+  }
+
   const imagePath = handleImageUpload(req);
   db.threads.create(username, title, text, imagePath);
 
@@ -187,6 +192,10 @@ export async function getThread(req, res) {
   }
 
   const thread = await db.threads.get(req.query.post_id);
+  if (thread.error) {
+    await sendError(res, 400, "An error occurred");
+    return;
+  }
   res.writeHead(200, headerFields);
   res.write(
     JSON.stringify({

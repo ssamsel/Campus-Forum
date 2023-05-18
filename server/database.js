@@ -17,7 +17,6 @@ const pg_options = {
 const pool = new pg.Pool(pg_options); // Used to actually query the db
 const client = new pg.Client(pg_options); // Used to set up tables if needed
 
-
 // SQL Queries to create the tables
 // Also provide a visual representation to reference table structure
 const account_table = `
@@ -81,54 +80,85 @@ class AccountTable {
 
   // Returns true iff an account with username exists
   async exists(username) {
-    const users = await pool.query(
-      `SELECT username FROM accounts WHERE username = $1;`,
-      [username]
-    );
-    return users.rows.length != 0;
+    try {
+      const users = await pool.query(
+        `SELECT username FROM accounts WHERE username = $1;`,
+        [username]
+      );
+      return users.rows.length != 0;
+    } catch (err) {
+      console.error(`Error when checking if account: <${username}> exists`);
+      console.error(err);
+    }
   }
 
   // Puts a new user into db
   create(username, password) {
-    pool.query(
-      `INSERT INTO accounts VALUES ('${username}','${hashPassword(
-        password
-      )}','{}');`
-    );
+    pool
+      .query(
+        `INSERT INTO accounts VALUES ('${username}','${hashPassword(
+          password
+        )}','{}');`
+      )
+      .catch((err) => {
+        console.error(`Error when creating account <${username}>`);
+        console.error(err);
+      });
   }
 
   // Checks password of username in db
   // Returns true if is correct
   async checkPassword(username, password) {
-    const account = await pool.query(
-      `SELECT username,hash FROM accounts WHERE username = '${username}';`
-    );
-    return account.rows[0].hash === hashPassword(password);
+    try {
+      const account = await pool.query(
+        `SELECT username,hash FROM accounts WHERE username = '${username}';`
+      );
+      return account.rows[0].hash === hashPassword(password);
+    } catch (err) {
+      console.error(`Error when checking <${username}> password!`);
+      console.error(err);
+      return false;
+    }
   }
 
   // Toggles whether a user liked a comment or not
   // returns either 1 or -1, which is used to update like count in comment db
   async toggleCommentLike(username, comment) {
     let ret = 0;
-    const account = (
-      await pool.query(
-        `SELECT username,likes FROM accounts WHERE username = '${username}';`
-      )
-    ).rows[0];
+    try {
+      const account = (
+        await pool.query(
+          `SELECT username,likes FROM accounts WHERE username = '${username}';`
+        )
+      ).rows[0];
 
-    if (account.likes.some((x) => x === comment)) { // If user has liked this comment
-      ret = -1;
-      account.likes.splice(account.likes.indexOf(comment), 1); // Remove it from their likes array
-    } else { // Otherwise the user has not liked this comment
-      ret = 1;
-      account.likes.push(comment); // Add comment to their likes
+      if (account.likes.some((x) => x === comment)) {
+        // If user has liked this comment
+        ret = -1;
+        account.likes.splice(account.likes.indexOf(comment), 1); // Remove it from their likes array
+      } else {
+        // Otherwise the user has not liked this comment
+        ret = 1;
+        account.likes.push(comment); // Add comment to their likes
+      }
+      // Update the database
+      pool
+        .query(`UPDATE accounts SET likes = $1 WHERE username = $2;`, [
+          account.likes,
+          username,
+        ])
+        .catch((err) => {
+          console.error(`Error when updating likes`);
+          console.error(`User: <${username}>, Comment: <${comment}>`);
+          console.error(err);
+        });
+      return ret;
+    } catch (err) {
+      console.error(`Error when toggling like for comment`);
+      console.error(`Comment: <${comment}>, User: <${username}>`);
+      console.error(err);
+      return 0;
     }
-    // Update the database
-    pool.query(`UPDATE accounts SET likes = $1 WHERE username = $2;`, [
-      account.likes,
-      username,
-    ]);
-    return ret;
   }
 }
 
@@ -138,106 +168,163 @@ class ThreadTable {
 
   // Returns true iff thread with title exists
   async exists(title) {
-    const docs = await pool.query(
-      `SELECT title FROM threads WHERE title = $1`,
-      [title]
-    );
-    return docs.rows.length != 0;
+    try {
+      const docs = await pool.query(
+        `SELECT title FROM threads WHERE title = $1`,
+        [title]
+      );
+      return docs.rows.length != 0;
+    } catch (err) {
+      console.error(`Error when checking if thread <${title}> exists`);
+      console.error(err);
+      return false;
+    }
   }
 
   // Creates a new thread
   create(author, title, text, imagePath) {
-    pool.query(`INSERT INTO threads VALUES ($1, $2, $3, $4, $5, $6, $7, $8);`, [
+    const params = [
       title,
       author,
       text,
       Date.now(),
-      imagePath ? 1: 0,
+      imagePath ? 1 : 0,
       imagePath,
       1,
       [],
-    ]);
+    ];
+    pool
+      .query(
+        `INSERT INTO threads VALUES ($1, $2, $3, $4, $5, $6, $7, $8);`,
+        params
+      )
+      .catch((err) => {
+        console.error(`Error when creating thread`);
+        console.error(`Data: ${JSON.stringify(params)}`);
+        console.error(err);
+      });
   }
 
   // Updates the time of thread ("Latest Post" time in front-end)
   async updateTimeStamp(title) {
-    await pool.query(`UPDATE threads SET time = $1 WHERE title = $2;`, [
-      Date.now(),
-      title,
-    ]);
+    try {
+      await pool.query(`UPDATE threads SET time = $1 WHERE title = $2;`, [
+        Date.now(),
+        title,
+      ]);
+    } catch (err) {
+      console.error(`Error when updating timestamp for thread <${title}>`);
+      console.error(err);
+    }
   }
 
   // Increments post count and returns the new value
   async incrementPostCount(title) {
-    await pool.query(
-      `UPDATE threads SET posts = posts + 1 WHERE title = $1;`,
-      [title]
-    );
-    return (
-      await pool.query(`SELECT posts FROM threads WHERE title = $1;`, [title])
-    ).rows[0].posts;
+    try {
+      await pool.query(
+        `UPDATE threads SET posts = posts + 1 WHERE title = $1;`,
+        [title]
+      );
+    } catch (err) {
+      console.error(`Error when incrementing post count for <${title}>`);
+      console.error(err);
+    }
+    try {
+      return (
+        await pool.query(`SELECT posts FROM threads WHERE title = $1;`, [title])
+      ).rows[0].posts;
+    } catch (err) {
+      console.error(`Error when getting post count value from <${title}>`);
+      console.error(err);
+      return 0;
+    }
   }
-
   // Adds a comment to list of comment tree roots to a thread
   addTopLevelComment(title, comment_id) {
-    pool.query(
-      `UPDATE threads SET comments = comments || $1 WHERE title = $2;`,
-      [[comment_id], title]
-    );
+    pool
+      .query(`UPDATE threads SET comments = comments || $1 WHERE title = $2;`, [
+        [comment_id],
+        title,
+      ])
+      .catch((err) => {
+        console.error(`Error when add top level comment`);
+        console.error(`Title: <${title}>, Comment: <${comment_id}`);
+      });
   }
 
   // Returns all stored info regarding a thread
   async get(title) {
-    const thread = (
-      await pool.query(`SELECT * FROM threads WHERE title = $1`, [title])
-    ).rows[0];
-    return {
-      title: thread.title,
-      author: thread.author,
-      body: thread.body,
-      time: thread.time,
-      images: thread.images,
-      imagePath: thread.image_path ? thread.image_path : undefined,
-      posts: thread.posts,
-      comments: thread.comments,
-    };
+    try {
+      const thread = (
+        await pool.query(`SELECT * FROM threads WHERE title = $1`, [title])
+      ).rows[0];
+      return {
+        title: thread.title,
+        author: thread.author,
+        body: thread.body,
+        time: thread.time,
+        images: thread.images,
+        imagePath: thread.image_path ? thread.image_path : undefined,
+        posts: thread.posts,
+        comments: thread.comments,
+      };
+    } catch (err) {
+      console.error(`Error when retrieving thread <${title}>`);
+      console.error(err);
+      return { error: true };
+    }
   }
 
   // Deletes thread
   delete(title) {
-    pool.query(`DELETE FROM threads WHERE title = $1`, [title]);
+    pool.query(`DELETE FROM threads WHERE title = $1`, [title]).catch((err) => {
+      console.err(`Error when deleting thread <${title}>`);
+    });
   }
 
   // Returns array which each entry being the information shown in front-end
   // Limits which threads are returned to a virtual page defined by page and amount
   // if amount is "All", or page or amount are undefined, dumps all threads
   async dump(amount, page) {
-    let threads = (
-      await pool.query(`SELECT * FROM threads ORDER BY time DESC;`)
-    ).rows;
+    try {
+      let threads = (
+        await pool.query(`SELECT * FROM threads ORDER BY time DESC;`)
+      ).rows;
 
-    // Get the page requested, if applicable
-    if (amount !== undefined && page != undefined && amount !== "All") {
-      const amt = parseInt(amount);
-      const pg = parseInt(page) - 1;
-      threads = threads.slice(pg * amt, pg * amt + amt);
+      // Get the page requested, if applicable
+      if (amount !== undefined && page != undefined && amount !== "All") {
+        const amt = parseInt(amount);
+        const pg = parseInt(page) - 1;
+        threads = threads.slice(pg * amt, pg * amt + amt);
+      }
+
+      return threads.map((x) => {
+        return {
+          author: x.author,
+          title: x.title,
+          body: x.body,
+          time: timeUtils.convertToRecencyString(x.time), // Convert UNIX millis to "XX minutes ago" or similar
+          images: x.images,
+          posts: x.posts,
+        };
+      });
+    } catch (err) {
+      console.error(`Error when dumping threads`);
+      console.error(`Amount: <${amount}>, Page: <${page}>`);
+      console.error(err);
+      return [];
     }
-
-    return threads.map((x) => {
-      return {
-        author: x.author,
-        title: x.title,
-        body: x.body,
-        time: timeUtils.convertToRecencyString(x.time), // Convert UNIX millis to "XX minutes ago" or similar
-        images: x.images,
-        posts: x.posts,
-      };
-    });
   }
 
   // Returns total number of threads
   async total() {
-    return (await pool.query(`SELECT title FROM threads;`)).rows.length;
+    try {
+      return (await pool.query(`SELECT title FROM threads;`)).rows.length;
+    } catch (err) {
+      console.error(`Error when getting total pages`);
+      console.error(err);
+      return 0;
+    }
   }
 }
 
@@ -248,76 +335,123 @@ class CommentTable {
 
   // Adds a comment id to a comment's children array
   addChild(parent_id, id) {
-    pool.query(`UPDATE comments SET children = children || $1 WHERE comment_id = $2;`, [
-      [id.replace(/_/g, " ")],
-      parent_id,
-    ]);
+    pool
+      .query(
+        `UPDATE comments SET children = children || $1 WHERE comment_id = $2;`,
+        [[id.replace(/_/g, " ")], parent_id]
+      )
+      .catch((err) => {
+        console.error(
+          `Error when adding child to <${parent_id}>, child: <${id}>`
+        );
+        console.error(err);
+      });
   }
 
   // Creates a new row for a new comment
   async create(id, author, text) {
-    await pool.query(`INSERT INTO comments VALUES ($1, $2, $3, $4, $5, $6);`, [
-      id.replace(/_/g, " "),
-      author,
-      text,
-      Date.now(),
-      0,
-      [],
-    ]);
+    try {
+      await pool.query(
+        `INSERT INTO comments VALUES ($1, $2, $3, $4, $5, $6);`,
+        [id.replace(/_/g, " "), author, text, Date.now(), 0, []]
+      );
+    } catch (err) {
+      console.error(`Error creating comment`);
+      console.error(`ID: <${id}>, Author: <${author}>`);
+      console.error(`Text: <${text}>`);
+      console.error(err);
+    }
   }
 
   // Returns a comment with all its children recursively nested in its children array
   async load(id) {
-    const comment = (
-      await pool.query(`SELECT * FROM comments WHERE comment_id = $1;`, [id.replace(/_/g, " ")])
-    ).rows[0];
-    for (let i = 0; i < comment.children.length; i++) {
-      const child = await this.load(comment.children[i]);
-      comment.children[i] = child;
+    try {
+      const comment = (
+        await pool.query(`SELECT * FROM comments WHERE comment_id = $1;`, [
+          id.replace(/_/g, " "),
+        ])
+      ).rows[0];
+      for (let i = 0; i < comment.children.length; i++) {
+        const child = await this.load(comment.children[i]);
+        comment.children[i] = child;
+      }
+      return comment;
+    } catch (err) {
+      console.error(`Error loading comment id: <${id}>`);
+      console.error(err);
+      return { children: [] };
     }
-    return comment;
   }
 
   // Deletes comments corresponding to a thread
   deleteAllFromThread(title) {
-    pool.query(`DELETE FROM comments WHERE comment_id ~ $1;`, [
-      `^[0-9]+-${title}$`,
-    ]);
+    pool
+      .query(`DELETE FROM comments WHERE comment_id ~ $1;`, [
+        `^[0-9]+-${title}$`,
+      ])
+      .catch((err) => {
+        console.error(`Error deleting comments from thread <${title}>`);
+        console.error(err);
+      });
   }
 
   // Adds amount to comment_id's like count
   changeLikeCount(comment_id, amount) {
-    pool.query(
-      `UPDATE comments SET likes = likes + $1 WHERE comment_id = $2;`,
-      [amount, comment_id.replace(/_/g, " ")]
-    );
+    pool
+      .query(`UPDATE comments SET likes = likes + $1 WHERE comment_id = $2;`, [
+        amount,
+        comment_id.replace(/_/g, " "),
+      ])
+      .then((err) => {
+        console.error(`Error changing like count`);
+        console.error(`Comment: <${comment_id}, amount: <${amount}>`);
+        console.error(err);
+      });
   }
 
   // Returns the username of the comment creator
   async getAuthor(comment_id) {
-    return (
-      await pool.query(`SELECT author FROM comments WHERE comment_id = $1;`, [
-        comment_id.replace(/_/g, " "),
-      ])
-    ).rows[0].author;
+    try {
+      return (
+        await pool.query(`SELECT author FROM comments WHERE comment_id = $1;`, [
+          comment_id.replace(/_/g, " "),
+        ])
+      ).rows[0].author;
+    } catch (err) {
+      console.error(`Error getting author of comment: <${comment_id}>`);
+      console.error(err);
+      return "[ERROR]";
+    }
   }
 
   // Changes the text of a comment to text
   // Used to showy deletion in UI
   changeText(comment_id, text) {
-    pool.query(`UPDATE comments SET comment_body = $1 WHERE comment_id = $2;`, [
-      text,
-      comment_id.replace(/_/g, " "),
-    ]);
+    pool
+      .query(`UPDATE comments SET comment_body = $1 WHERE comment_id = $2;`, [
+        text,
+        comment_id.replace(/_/g, " "),
+      ])
+      .catch((err) => {
+        console.error(`Error changing text of comment: <${comment_id}`);
+        console.error(`Text: <${text}>`);
+        console.error(err);
+      });
   }
 
   // Changes the author of a comment to author
   // Used to showy deletion in UI
-  changeAuthor(comment_id, author){
-    pool.query(`UPDATE comments SET author = $1 WHERE comment_id = $2;`,[
-      author,
-      comment_id.replace(/_/g, " ")
-    ]);
+  changeAuthor(comment_id, author) {
+    pool
+      .query(`UPDATE comments SET author = $1 WHERE comment_id = $2;`, [
+        author,
+        comment_id.replace(/_/g, " "),
+      ])
+      .catch((err) => {
+        console.error(`Error changing author of comment: <${comment_id}`);
+        console.error(`Author: <${author}>`);
+        console.error(err);
+      });
   }
 }
 
