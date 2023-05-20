@@ -342,7 +342,7 @@ class ThreadTable {
         amount,
         title,
       ])
-      .then((err) => {
+      .catch((err) => {
         console.error(`Error changing thread like count`);
         console.error(`Thread: <${title}>, amount: <${amount}>`);
         console.error(err);

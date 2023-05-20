@@ -12,6 +12,8 @@ const navigation = document.getElementById("navigation");
 const comments = document.getElementById("comments-div");
 const commentButton = document.getElementById("post_comment");
 const newPostTextBox = document.getElementById("textBox");
+const postLikeButton = document.getElementById("post_like_button");
+const postLikeCount = document.getElementById("post_like_count");
 
 const username = window.sessionStorage.getItem("user");
 const password = window.sessionStorage.getItem("pw");
@@ -51,6 +53,7 @@ async function loadPost() {
   title.innerText = postData.title;
   author.innerText = postData.author;
   post.innerText = postData.post_body;
+  postLikeCount.innerText = postData.likes.toString() + (postData.likes === 1 ? " Like" : " Likes");
 
   // Creates the navigation link at the top of page
   const urlParams = new URLSearchParams(window.location.search);
@@ -77,6 +80,16 @@ async function loadPost() {
   if (postData.imagePath !== undefined) {
     image.innerHTML = `<img class="img_upload" src="${postData.imagePath}" />`;
   }
+
+  postLikeButton.addEventListener("click", async () => {
+    const response = await crud.updateThreadLikeCount(postData.title, username, password);
+    if (response.error !== undefined){
+      alert(response.error);
+      return;
+    }
+    await loadPost();
+  });
+
   return 0;
 }
 
