@@ -146,18 +146,13 @@ class AccountTable {
       }
 
       // Update the database
-      pool
-        .query(`UPDATE accounts SET ${type} = $1 WHERE username = $2;`, [
-          likes,
-          username,
-        ])
-        .catch((err) => {
-          console.error(`Error when updating likes in db`);
-          console.error(`User: <${username}>, ID: <${id}>, Type: <${type}>`);
-          console.error(err);
-        });
+      // Do this with await to prevent spamming
+      await pool.query(
+        `UPDATE accounts SET ${type} = $1 WHERE username = $2;`,
+        [likes, username]
+      );
     } catch (err) {
-      console.error(`Error when toggling like: getting account`);
+      console.error(`Error when toggling like`);
       console.error(`User: <${username}>, ID: <${id}>, Type: <${type}>`);
       console.error(err);
       return 0;

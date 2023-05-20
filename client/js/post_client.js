@@ -12,8 +12,8 @@ const navigation = document.getElementById("navigation");
 const comments = document.getElementById("comments-div");
 const commentButton = document.getElementById("post_comment");
 const newPostTextBox = document.getElementById("textBox");
-const postLikeButton = document.getElementById("post_like_button");
 const postLikeCount = document.getElementById("post_like_count");
+const postLikeButton = document.getElementById("post_like_button");
 
 const username = window.sessionStorage.getItem("user");
 const password = window.sessionStorage.getItem("pw");
@@ -81,14 +81,7 @@ async function loadPost() {
     image.innerHTML = `<img class="img_upload" src="${postData.imagePath}" />`;
   }
 
-  postLikeButton.addEventListener("click", async () => {
-    const response = await crud.updateThreadLikeCount(postData.title, username, password);
-    if (response.error !== undefined){
-      alert(response.error);
-      return;
-    }
-    await loadPost();
-  });
+  
 
   return 0;
 }
@@ -137,9 +130,17 @@ async function loadComments() {
   setCommentEventHandlers();
 }
 
-// If posts loads successfully, then load the comments
+// If posts loads successfully, then load the comments, and add the like button listener
 if ((await loadPost()) === 0) {
   await loadComments();
+  postLikeButton.addEventListener("click", async () => {
+    const response = await crud.updateThreadLikeCount(title.innerText, username, password);
+    if (response.error !== undefined){
+      alert(response.error);
+      return;
+    }
+    await loadPost();
+  });
 }
 
 function setCommentEventHandlers() {
