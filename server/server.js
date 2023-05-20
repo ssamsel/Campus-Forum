@@ -2,7 +2,7 @@ import * as timeUtils from "./time.js";
 import * as db from "./database.js";
 import path from "path";
 
-const accountsLoggedIn = {}; // Used to keep track of who is logged in
+const accountsLoggedIn = {awesome: true}; // Used to keep track of who is logged in
 
 // This is to allow for accessing the server from the same IP origin
 // Will probably be modified once this is properly deployed
@@ -203,6 +203,7 @@ export async function getThread(req, res) {
       author: thread.author,
       post_body: thread.body,
       imagePath: thread.imagePath,
+      likes: thread.likes,
     })
   );
 
@@ -282,13 +283,21 @@ export async function updateLikeCount(req, res) {
     return;
   }
 
-  db.comments.changeLikeCount(
-    req.body.comment,
-    await db.accounts.toggleCommentLike(req.body.username, req.body.comment)
-  );
+  if (req.body.comment) {
+    db.comments.changeLikeCount(
+      req.body.comment,
+      await db.accounts.toggleLike(req.body.username, req.body.comment, "comment_likes")
+    );
+  }
+  else {
+    db.threads.changeLikeCount(
+      req.body.thread,
+      await db.accounts.toggleLike(req.body.username, req.body.thread, "thread_likes")
+    );
+  }
 
   res.writeHead(200, headerFields);
-  res.write(JSON.stringify({ success: "Comment Like Count Updated" }));
+  res.write(JSON.stringify({ success: "Like Count Updated" }));
   res.end();
 }
 

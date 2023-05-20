@@ -23,7 +23,8 @@ const account_table = `
 CREATE TABLE IF NOT EXISTS accounts (
   username text,
   hash text,
-  likes text[]
+  comment_likes text[],
+  thread_likes text[]
 );`;
 const thread_table = `
 CREATE TABLE IF NOT EXISTS threads (
@@ -34,7 +35,8 @@ CREATE TABLE IF NOT EXISTS threads (
   images integer,
   image_path text,
   posts integer,
-  comments text[]
+  comments text[],
+  likes integer
 );`;
 const comment_table = `
 CREATE TABLE IF NOT EXISTS comments (
@@ -95,11 +97,10 @@ class AccountTable {
   // Puts a new user into db
   create(username, password) {
     pool
-      .query(
-        `INSERT INTO accounts VALUES ('${username}','${hashPassword(
-          password
-        )}','{}');`
-      )
+      .query(`INSERT INTO accounts VALUES ($1, $2, '{}', '{}');`, [
+        username,
+        hashPassword(password),
+      ])
       .catch((err) => {
         console.error(`Error when creating account <${username}>`);
         console.error(err);
@@ -121,44 +122,43 @@ class AccountTable {
     }
   }
 
-  // Toggles whether a user liked a comment or not
-  // returns either 1 or -1, which is used to update like count in comment db
-  async toggleCommentLike(username, comment) {
+  // Toggles whether a user liked a post (comment/thread) or not
+  // returns either 1 or -1, which is used to update like count in thread or comment db
+  async toggleLike(username, id, type) {
     let ret = 0;
     try {
       const account = (
         await pool.query(
-          `SELECT username,likes FROM accounts WHERE username = '${username}';`
+          `SELECT username,${type} FROM accounts WHERE username = $1;`,
+          [username]
         )
       ).rows[0];
 
-      if (account.likes.some((x) => x === comment)) {
-        // If user has liked this comment
+      const likes = account[type];
+      if (likes.some((x) => x === id)) {
+        // If user has liked this
         ret = -1;
-        account.likes.splice(account.likes.indexOf(comment), 1); // Remove it from their likes array
+        likes.splice(likes.indexOf(id), 1); // Remove it from their likes array
       } else {
-        // Otherwise the user has not liked this comment
+        // Otherwise the user has not liked this
         ret = 1;
-        account.likes.push(comment); // Add comment to their likes
+        likes.push(id); // Add comment to their likes
       }
+
       // Update the database
-      pool
-        .query(`UPDATE accounts SET likes = $1 WHERE username = $2;`, [
-          account.likes,
-          username,
-        ])
-        .catch((err) => {
-          console.error(`Error when updating likes`);
-          console.error(`User: <${username}>, Comment: <${comment}>`);
-          console.error(err);
-        });
-      return ret;
+      // Do this with await to prevent spamming
+      await pool.query(
+        `UPDATE accounts SET ${type} = $1 WHERE username = $2;`,
+        [likes, username]
+      );
     } catch (err) {
-      console.error(`Error when toggling like for comment`);
-      console.error(`Comment: <${comment}>, User: <${username}>`);
+      console.error(`Error when toggling like`);
+      console.error(`User: <${username}>, ID: <${id}>, Type: <${type}>`);
       console.error(err);
       return 0;
     }
+
+    return ret;
   }
 }
 
@@ -192,10 +192,11 @@ class ThreadTable {
       imagePath,
       1,
       [],
+      0,
     ];
     pool
       .query(
-        `INSERT INTO threads VALUES ($1, $2, $3, $4, $5, $6, $7, $8);`,
+        `INSERT INTO threads VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9);`,
         params
       )
       .catch((err) => {
@@ -267,6 +268,7 @@ class ThreadTable {
         imagePath: thread.image_path ? thread.image_path : undefined,
         posts: thread.posts,
         comments: thread.comments,
+        likes: thread.likes,
       };
     } catch (err) {
       console.error(`Error when retrieving thread <${title}>`);
@@ -306,6 +308,7 @@ class ThreadTable {
           time: timeUtils.convertToRecencyString(x.time), // Convert UNIX millis to "XX minutes ago" or similar
           images: x.images,
           posts: x.posts,
+          likes: x.likes,
         };
       });
     } catch (err) {
@@ -325,6 +328,20 @@ class ThreadTable {
       console.error(err);
       return 0;
     }
+  }
+
+  // Adds amount to titles's like count
+  changeLikeCount(title, amount) {
+    pool
+      .query(`UPDATE threads SET likes = likes + $1 WHERE title = $2;`, [
+        amount,
+        title,
+      ])
+      .catch((err) => {
+        console.error(`Error changing thread like count`);
+        console.error(`Thread: <${title}>, amount: <${amount}>`);
+        console.error(err);
+      });
   }
 }
 
@@ -402,9 +419,9 @@ class CommentTable {
         amount,
         comment_id.replace(/_/g, " "),
       ])
-      .then((err) => {
+      .catch((err) => {
         console.error(`Error changing like count`);
-        console.error(`Comment: <${comment_id}, amount: <${amount}>`);
+        console.error(`Comment: <${comment_id}>, amount: <${amount}>`);
         console.error(err);
       });
   }

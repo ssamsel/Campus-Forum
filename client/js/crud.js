@@ -153,6 +153,23 @@ export async function updateLikeCount(comment, username, password) {
   return data;
 }
 
+// Updates the like count for thread
+export async function updateThreadLikeCount(thread, username, password) {
+  const response = await fetch(`/server/updateLikeCount`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      username: username,
+      password: password,
+      thread: thread,
+    }),
+  });
+  const data = await response.json();
+  return data;
+}
+
 // Returns a boolean on weather username is logged in
 export async function isLoggedIn(username) {
   const response = await fetch(
