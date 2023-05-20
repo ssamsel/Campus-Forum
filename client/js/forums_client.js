@@ -73,6 +73,9 @@ let threads_html =
           <div class="circle-div"></div>
         </div>
         <div class="col-sm row-item">
+          <div class="circle-div"></div>
+        </div>
+        <div class="col-sm row-item">
           <p class="small-text"></p>
           <div class="author-div">
           </div>
@@ -86,6 +89,9 @@ dumpedThreads.forEach((x, idx) => {
         <div class="w-50"><a href="/post.html?title=${encodeURIComponent(
           x.title
         )}&page=${page}&amount=${amount}">${x.title}</a></div>
+        <div class="col-sm row-item">
+          <div class="circle-div">${x.likes}</div>
+        </div>
         <div class="col-sm row-item">
           <div class="circle-div">${x.images}</div>
         </div>
