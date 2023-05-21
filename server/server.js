@@ -2,7 +2,7 @@ import * as timeUtils from "./time.js";
 import * as db from "./database.js";
 import path from "path";
 
-const accountsLoggedIn = {awesome: true}; // Used to keep track of who is logged in
+const accountsLoggedIn = {}; // Used to keep track of who is logged in
 
 // This is to allow for accessing the server from the same IP origin
 // Will probably be modified once this is properly deployed
