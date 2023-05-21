@@ -241,6 +241,27 @@ class ThreadTable {
       return 0;
     }
   }
+
+  async incrementImageCount(title) {
+    try {
+      await pool.query(
+        `UPDATE threads SET images = images + 1 WHERE title = $1`,
+        [title]
+      );
+    } catch (err) {
+      console.error(`Error when incrementing image count for <${title}>`);
+      console.error(err);
+    }
+    try {
+      return (
+        await pool.query(`SELECT images FROM threads WHERE title = $1;`, [title])
+      ).rows[0].posts;
+    } catch (err) {
+      console.error(`Error when getting image count value from <${title}>`);
+      console.error(err);
+      return 0;
+    }
+  }
   // Adds a comment to list of comment tree roots to a thread
   addTopLevelComment(title, comment_id) {
     pool
@@ -289,7 +310,9 @@ class ThreadTable {
   // Limits which threads are returned to a virtual page defined by page and amount
   // if amount is "All", or page or amount are undefined, dumps all threads
   async dump(amount, page, ordering) {
-    const col = ["likes", "posts", "images"].includes(ordering) ? ordering : "time";
+    const col = ["likes", "posts", "images"].includes(ordering)
+      ? ordering
+      : "time";
     try {
       let threads = (
         await pool.query(`SELECT * FROM threads ORDER BY ${col} DESC;`)
