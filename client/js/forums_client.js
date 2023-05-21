@@ -63,7 +63,7 @@ results_per_page.addEventListener("change", () => {
 });
 
 // Get the threads
-const dumpedThreads = await crud.dumpThreads(page, amount);
+const dumpedThreads = await crud.dumpThreads(page, amount, ordering);
 let threads_html =
   dumpedThreads.length !== 0
     ? ""
