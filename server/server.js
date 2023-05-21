@@ -116,6 +116,12 @@ function handleImageUpload(req) {
 }
 
 export async function createThread(req, res) {
+  // Image upload file size exceeded
+  // Handler already ended response so return now
+  if (res.statusCode === 413){
+    return;
+  }
+
   const username = req.body.username;
   const password = req.body.password;
   const title = req.body.title;
@@ -152,19 +158,19 @@ export async function createThread(req, res) {
   }
 
   const imagePath = handleImageUpload(req);
-  try {
-    res.writeHead(200, headerFields);
-    res.write(JSON.stringify({ success: "Thread Created" }));
-    res.end();
-  } catch (err) {
-    console.error(`Headers sent already, likely image upload size exceeded`);
-    console.error(err);
-    return;
-  }
   db.threads.create(username, title, text, imagePath);
+
+  res.writeHead(200, headerFields);
+  res.write(JSON.stringify({ success: "Thread Created" }));
+  res.end();
 }
 
 export async function createComment(req, res) {
+  // This means image upload failed, so stop
+  if (res.statusCode === 413) {
+    return;
+  }
+
   if (!(await db.threads.exists(req.body.post_id))) {
     await sendError(res, 404, "Post not found.");
     return;
@@ -177,11 +183,6 @@ export async function createComment(req, res) {
   const checkLogin = await loginValid(req.body.username, req.body.password);
   if (checkLogin !== true) {
     await sendError(res, 400, checkLogin);
-    return;
-  }
-
-  const imagePath = handleImageUpload(req);
-  if (res.statusCode === 413){
     return;
   }
 
@@ -202,6 +203,7 @@ export async function createComment(req, res) {
     db.threads.incrementImageCount(req.body.post_id);
   }
 
+  const imagePath = handleImageUpload(req);
   await db.comments.create(
     comment_id,
     req.body.username,
@@ -209,14 +211,9 @@ export async function createComment(req, res) {
     imagePath
   );
 
-  try {
-    res.writeHead(200, headerFields);
-    res.write(JSON.stringify({ success: "Comment Created" }));
-    res.end();
-  } catch (err) {
-    console.error(`Headers already sent, likely image upload size exceeded`);
-    console.error(err);
-  }
+  res.writeHead(200, headerFields);
+  res.write(JSON.stringify({ success: "Comment Created" }));
+  res.end();
 }
 
 export async function getThread(req, res) {
