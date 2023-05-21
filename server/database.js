@@ -288,7 +288,7 @@ class ThreadTable {
   // Limits which threads are returned to a virtual page defined by page and amount
   // if amount is "All", or page or amount are undefined, dumps all threads
   async dump(amount, page, ordering) {
-    const col = ordering in ["likes", "posts", "images"] ? ordering : "time";
+    const col = ["likes", "posts", "images"].includes(ordering) ? ordering : "time";
     try {
       let threads = (
         await pool.query(`SELECT * FROM threads ORDER BY ${col} DESC;`)
