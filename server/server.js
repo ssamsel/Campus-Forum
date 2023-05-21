@@ -343,7 +343,7 @@ export async function deleteComment(req, res) {
   }
   db.comments.changeText(comment_id, "[DELETED]");
   db.comments.changeAuthor(comment_id, "[DELETED]");
-
+  db.comments.changeImagePath(comment_id, "/img/deleted.png");
   res.writeHead(200, headerFields);
   res.write(JSON.stringify({ success: "Comment Deleted" }));
   res.end();

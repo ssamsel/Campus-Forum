@@ -199,6 +199,11 @@ a {
 	max-height: 500px;
 	object-fit: contain;
 }
+.img_comment {
+	max-width: 600px;
+	max-height: 200px;
+	object-fit: contain;
+}
 
 .delete-btn {
 	color: #881C1C;
