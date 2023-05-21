@@ -17,7 +17,11 @@ app.use(express.urlencoded({ extended: false })); // Middleware for URL query pr
 app.use(logger(process.env.LOG_TYPE || "combined"));
 // Static routes
 app.use("/", express.static("client"));
-app.use("/uploads", express.static("uploads"));
+app.use("/uploads", express.static("uploads", {
+  setHeaders: (res, path, stat) => {
+    res.set("Content-Type", "image/jpeg");
+  }
+}));
 
 // Account routes
 app.put("/server/createAccount", server.createAccount);
