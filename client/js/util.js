@@ -25,15 +25,15 @@ export async function integrateAuthUI() {
         alert("You have logged out");
         location.reload();
       });
-  }
-  else {
+  } else {
     // Synchronize server and client auth status if not logged in
     crud.logOut(username, window.sessionStorage.getItem("pw"));
     window.sessionStorage.clear();
 
-
     // Change account name link so it will return to current forum
-    account_link.innerHTML = `<a href=/login.html?prev=${encodeURIComponent(window.location.href)}>Create Account/Login</a>`;
+    account_link.innerHTML = `<a href=/login.html?prev=${encodeURIComponent(
+      window.location.href
+    )}>Create Account/Login</a>`;
   }
 }
 
