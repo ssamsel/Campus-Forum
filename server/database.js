@@ -254,7 +254,9 @@ class ThreadTable {
     }
     try {
       return (
-        await pool.query(`SELECT images FROM threads WHERE title = $1;`, [title])
+        await pool.query(`SELECT images FROM threads WHERE title = $1;`, [
+          title,
+        ])
       ).rows[0].posts;
     } catch (err) {
       console.error(`Error when getting image count value from <${title}>`);
@@ -492,6 +494,20 @@ class CommentTable {
       .catch((err) => {
         console.error(`Error changing author of comment: <${comment_id}`);
         console.error(`Author: <${author}>`);
+        console.error(err);
+      });
+  }
+
+  // Changes path of image if there was a path to begin with
+  changeImagePath(comment_id, new_path) {
+    pool
+      .query(
+        `UPDATE comments SET image_path = $1 WHERE comment_id = $2 AND image_path IS NOT NULL;`,
+        [new_path, comment_id]
+      )
+      .catch((err) => {
+        console.error(`Error changing image_path of comment: <${comment_id}`);
+        console.error(`Path: <${new_path}>`);
         console.error(err);
       });
   }

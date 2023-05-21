@@ -98,7 +98,7 @@ function generateCommentHTML(comment) {
     <div class="vl"></div>
     <p class="comment-text">${comment.comment_body}</p>
     <div ${comment.image_path ? "" : "hidden='hidden'"}>
-    <p class="comment-text"><img class="img_upload" src="${comment.image_path}" /></p><br>
+    <p class="comment-text"><img class="img_comment" src="${comment.image_path}" /></p><br>
     </div>
     <br>
     <button class="like btn" id="like-button">
