@@ -11,13 +11,54 @@ import * as server from "./server.js";
 dotenv.config(); // Load environment variables from .env
 
 const app = express();
-app.use(fileUpload({ createParentPath: true })); // Middleware for image uploads
+app.use(
+  fileUpload({
+    createParentPath: true,
+    safeFileNames: true,
+    limits: { fileSize: 10 * 1024 * 1024 || process.env.max_upload_size },
+    limitHandler: (req, res, next) => {
+      res.writeHead(413);
+      res.write(
+        JSON.stringify({
+          error: `File upload size exceeded. Max: ${
+            "10Mb" || `${parseInt(process.env.max_upload_size) / 1024 / 1024}Mb`
+          }`,
+        })
+      );
+      res.end();
+    },
+  })
+); // Middleware for image uploads
 app.use(express.json()); // Middleware for JSON body parsing
 app.use(express.urlencoded({ extended: false })); // Middleware for URL query processing
 app.use(logger(process.env.LOG_TYPE || "combined"));
 // Static routes
 app.use("/", express.static("client"));
-app.use("/uploads", express.static("uploads"));
+app.use(
+  "/uploads",
+  express.static("uploads", {
+    setHeaders: (res, path, stat) => {
+      const ext = path.toLowerCase().match(/\..*$/);
+      const map = {
+        ".jpeg": "image/jpeg",
+        ".jpg": "image/jpg",
+        ".png": "image/png",
+        ".apng": "image/apng",
+        ".avif": "image/avif",
+        ".svg": "image/svg+xml",
+        ".webp": "image/webp",
+        ".gif": "image/gif",
+      }
+      let header = "";
+      try {
+        header = map[ext[0]];
+      } catch(err) {
+        header = "image/jpeg";
+      }
+      res.set("Content-Type", header);
+    },
+  })
+);
 
 // Account routes
 app.put("/server/createAccount", server.createAccount);
@@ -48,7 +89,9 @@ app.get("/client/forums.html", (req, res) => {
 // Display 404 Page
 app.all("*", (req, res) => {
   res.writeHead(404);
-  res.write(fs.readFileSync(path.join(process.env.PWD, "/client/notfound.html")));
+  res.write(
+    fs.readFileSync(path.join(process.env.PWD, "/client/notfound.html"))
+  );
   res.end();
 });
 

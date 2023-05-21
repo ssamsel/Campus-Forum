@@ -2,7 +2,7 @@ import * as timeUtils from "./time.js";
 import * as db from "./database.js";
 import path from "path";
 
-const accountsLoggedIn = {}; // Used to keep track of who is logged in
+const accountsLoggedIn = { aaaaaa: true }; // Used to keep track of who is logged in
 
 // This is to allow for accessing the server from the same IP origin
 // Will probably be modified once this is properly deployed
@@ -99,8 +99,18 @@ function handleImageUpload(req) {
   if (!req.files) {
     return undefined;
   }
-  const filepath = `/uploads/${Date.now()}`; // Create unique name with UNIX millis
   const { image } = req.files;
+
+  // If type is not image, return undefined
+  // Image does not get stored, thread/comment will not have image
+  if (!/^image/.test(image.mimetype)) {
+    return undefined;
+  }
+
+  const filepath = `/uploads/${Date.now()}.${image.mimetype.replace(
+    /image\//,
+    ""
+  )}`; // Create unique name with UNIX millis
   image.mv(path.join(process.env.PWD, filepath));
   return filepath;
 }
@@ -142,11 +152,15 @@ export async function createThread(req, res) {
   }
 
   const imagePath = handleImageUpload(req);
-  db.threads.create(username, title, text, imagePath);
-
-  res.writeHead(200, headerFields);
-  res.write(JSON.stringify({ success: "Thread Created" }));
-  res.end();
+  try {
+    res.writeHead(200, headerFields);
+    res.write(JSON.stringify({ success: "Thread Created" }));
+    res.end();
+    db.threads.create(username, title, text, imagePath);
+  } catch (err) {
+    console.error(`Headers sent already, likely image upload size exceeded`);
+    console.error(err);
+  }
 }
 
 export async function createComment(req, res) {
