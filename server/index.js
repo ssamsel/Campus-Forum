@@ -38,7 +38,24 @@ app.use(
   "/uploads",
   express.static("uploads", {
     setHeaders: (res, path, stat) => {
-      res.set("Content-Type", "image/jpeg");
+      const ext = path.toLowerCase().match(/\..*$/);
+      const map = {
+        ".jpeg": "image/jpeg",
+        ".jpg": "image/jpg",
+        ".png": "image/png",
+        ".apng": "image/apng",
+        ".avif": "image/avif",
+        ".svg": "image/svg+xml",
+        ".webp": "image/webp",
+        ".gif": "image/gif",
+      }
+      let header = "";
+      try {
+        header = map[ext[0]];
+      } catch(err) {
+        header = "image/jpeg";
+      }
+      res.set("Content-Type", header);
     },
   })
 );
