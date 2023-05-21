@@ -36,12 +36,7 @@ const totalPages =
   amount === "All" ? 1 : Math.ceil(numThreads / parseInt(amount));
 let locationHtml = "";
 
-locationHtml += {
-  time: "Latest Post",
-  images: "Most Images",
-  posts: "Most Posts",
-  likes: "Most Likes",
-}[ordering] + " > ";
+locationHtml += Util.orderingMap[ordering] + " > ";
 
 if (totalPages === 1) {
   locationHtml += "<b>First</b>";
@@ -49,13 +44,13 @@ if (totalPages === 1) {
   if (page > 1) {
     locationHtml += `<a href="${path}?page=${
       page - 1
-    }&amount=${amount}">Prev</a> `;
+    }&amount=${amount}&by=${ordering}">Prev</a> `;
   }
   locationHtml += `<b>${page === 1 ? "Newest" : page}</b> `;
   if (page < totalPages) {
     locationHtml += `<a href="${path}?page=${
       page + 1
-    }&amount=${amount}">Next</a>`;
+    }&amount=${amount}&by=${ordering}">Next</a>`;
   }
 }
 navigation.innerHTML = locationHtml;
@@ -97,7 +92,7 @@ dumpedThreads.forEach((x, idx) => {
   const template = `<div class="container-fluid forum ${last}">
         <div class="w-50"><a href="/post.html?title=${encodeURIComponent(
           x.title
-        )}&page=${page}&amount=${amount}">${x.title}</a></div>
+        )}&page=${page}&amount=${amount}&by=${ordering}">${x.title}</a></div>
         <div class="col-sm row-item">
           <div class="circle-div">${x.likes}</div>
         </div>

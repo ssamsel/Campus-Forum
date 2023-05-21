@@ -1,5 +1,13 @@
 import * as crud from "./crud.js";
 
+// Used to map url query parameter "by" to the front end text
+export const orderingMap = {
+  time: "Latest Post",
+  images: "Most Images",
+  posts: "Most Posts",
+  likes: "Most Likes",
+};
+
 // Adds username and logout button to top right corner
 export async function integrateAuthUI() {
   const username = window.sessionStorage.getItem("user");
