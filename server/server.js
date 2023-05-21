@@ -265,7 +265,7 @@ export async function deleteThread(req, res) {
 export async function dumpThreads(req, res) {
   res.writeHead(200, headerFields);
   res.write(
-    JSON.stringify(await db.threads.dump(req.query.amount, req.query.page))
+    JSON.stringify(await db.threads.dump(req.query.amount, req.query.page, req.query.order))
   );
   res.end();
 }

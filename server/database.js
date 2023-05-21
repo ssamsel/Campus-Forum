@@ -287,10 +287,11 @@ class ThreadTable {
   // Returns array which each entry being the information shown in front-end
   // Limits which threads are returned to a virtual page defined by page and amount
   // if amount is "All", or page or amount are undefined, dumps all threads
-  async dump(amount, page) {
+  async dump(amount, page, ordering) {
+    const col = ordering in ["likes", "posts", "images"] ? ordering : "time";
     try {
       let threads = (
-        await pool.query(`SELECT * FROM threads ORDER BY time DESC;`)
+        await pool.query(`SELECT * FROM threads ORDER BY ${col} DESC;`)
       ).rows;
 
       // Get the page requested, if applicable
@@ -313,7 +314,7 @@ class ThreadTable {
       });
     } catch (err) {
       console.error(`Error when dumping threads`);
-      console.error(`Amount: <${amount}>, Page: <${page}>`);
+      console.error(`Amount: <${amount}>, Page: <${page}>, Col: <${col}>`);
       console.error(err);
       return [];
     }
