@@ -184,7 +184,7 @@ export async function createComment(req, res) {
   if (res.statusCode === 413){
     return;
   }
-  
+
   const num = await db.threads.incrementPostCount(req.body.post_id);
   await db.threads.updateTimeStamp(req.body.post_id);
 
