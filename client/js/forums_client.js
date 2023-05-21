@@ -102,7 +102,7 @@ dumpedThreads.forEach((x, idx) => {
         <div class="col-sm row-item">
           <div class="circle-div">${x.posts}</div>
         </div>
-        <div class="col-sm row-item">
+        <div class="col-sm-2 row-item">
           <p class="small-text">${x.time}</p>
           <div class="author-div">
             <img class="avatar" src="img/avatar.png" />
