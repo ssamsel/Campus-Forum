@@ -178,7 +178,7 @@ export async function createComment(req, res) {
     await db.comments.addChild(req.body.parent_id, comment_id);
   }
 
-  await db.comments.create(comment_id, req.body.username, req.body.text);
+  await db.comments.create(comment_id, req.body.username, req.body.text, handleImageUpload(req));
 
   res.writeHead(200, headerFields);
   res.write(JSON.stringify({ success: "Comment Created" }));

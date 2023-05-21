@@ -14,6 +14,7 @@ const commentButton = document.getElementById("post_comment");
 const newPostTextBox = document.getElementById("textBox");
 const postLikeCount = document.getElementById("post_like_count");
 const postLikeButton = document.getElementById("post_like_button");
+const image_upload = document.getElementById("image_upload");
 
 const username = window.sessionStorage.getItem("user");
 const password = window.sessionStorage.getItem("pw");
@@ -30,7 +31,8 @@ commentButton.addEventListener("click", async function (event) {
     postId,
     username,
     password,
-    text
+    text,
+    image_upload.files[0]
   );
   if (responseData.error === undefined) {
     newPostTextBox.value = "";
@@ -95,6 +97,9 @@ function generateCommentHTML(comment) {
     <p class="small-text">${comment.time}</p>
     <div class="vl"></div>
     <p class="comment-text">${comment.comment_body}</p>
+    <div ${comment.image_path ? "" : "hidden='hidden'"}>
+    <p class="comment-text"><img class="img_upload" src="${comment.image_path}" /></p><br>
+    </div>
     <br>
     <button class="like btn" id="like-button">
       <img class="comment" src="img/heart.png" /> 
@@ -119,6 +124,7 @@ function generateCommentHTML(comment) {
     commentHTML += `</div>`;
   }
   commentHTML += `</div>`;
+  console.log(comment);
   return commentHTML;
 }
 

@@ -45,7 +45,8 @@ CREATE TABLE IF NOT EXISTS comments (
   comment_body text,
   time bigint,
   likes integer,
-  children text[]
+  children text[],
+  image_path text
 );`;
 
 // Attempt to connect to database and give helpful error messages if fails
@@ -367,11 +368,11 @@ class CommentTable {
   }
 
   // Creates a new row for a new comment
-  async create(id, author, text) {
+  async create(id, author, text, imagePath) {
     try {
       await pool.query(
-        `INSERT INTO comments VALUES ($1, $2, $3, $4, $5, $6);`,
-        [id.replace(/_/g, " "), author, text, Date.now(), 0, []]
+        `INSERT INTO comments VALUES ($1, $2, $3, $4, $5, $6, $7);`,
+        [id.replace(/_/g, " "), author, text, Date.now(), 0, [], imagePath]
       );
     } catch (err) {
       console.error(`Error creating comment`);
