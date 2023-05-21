@@ -156,11 +156,12 @@ export async function createThread(req, res) {
     res.writeHead(200, headerFields);
     res.write(JSON.stringify({ success: "Thread Created" }));
     res.end();
-    db.threads.create(username, title, text, imagePath);
   } catch (err) {
     console.error(`Headers sent already, likely image upload size exceeded`);
     console.error(err);
+    return;
   }
+  db.threads.create(username, title, text, imagePath);
 }
 
 export async function createComment(req, res) {
@@ -179,6 +180,11 @@ export async function createComment(req, res) {
     return;
   }
 
+  const imagePath = handleImageUpload(req);
+  if (res.statusCode === 413) {
+    return;
+  }
+
   const num = await db.threads.incrementPostCount(req.body.post_id);
   await db.threads.updateTimeStamp(req.body.post_id);
 
@@ -191,10 +197,11 @@ export async function createComment(req, res) {
   } else {
     await db.comments.addChild(req.body.parent_id, comment_id);
   }
-  const imagePath = handleImageUpload(req);
+
   if (imagePath) {
     db.threads.incrementImageCount(req.body.post_id);
   }
+
   await db.comments.create(
     comment_id,
     req.body.username,
