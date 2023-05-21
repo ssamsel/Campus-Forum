@@ -78,19 +78,23 @@ export async function createComment(
   parent_id,
   username,
   password,
-  text
+  text,
+  imagePath
 ) {
+  const body = new FormData();
+  if (imagePath) {
+    body.append("image", imagePath);
+  }
+  body.append("username", username);
+  body.append("password", password);
+  body.append("text", text);
+  body.append("post_id", post_id);
+  body.append("post_parent", post_parent);
+  body.append("parent_id", parent_id);
+
   const response = await fetch(`/server/createComment`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      username: username,
-      password: password,
-      text: text,
-      post_id: post_id,
-      post_parent: post_parent,
-      parent_id: parent_id,
-    }),
+    body: body,
   });
   const data = await response.json();
   return data;

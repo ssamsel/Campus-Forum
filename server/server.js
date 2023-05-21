@@ -177,8 +177,16 @@ export async function createComment(req, res) {
   } else {
     await db.comments.addChild(req.body.parent_id, comment_id);
   }
-
-  await db.comments.create(comment_id, req.body.username, req.body.text);
+  const imagePath = handleImageUpload(req);
+  if (imagePath) {
+    db.threads.incrementImageCount(req.body.post_id);
+  }
+  await db.comments.create(
+    comment_id,
+    req.body.username,
+    req.body.text,
+    imagePath
+  );
 
   res.writeHead(200, headerFields);
   res.write(JSON.stringify({ success: "Comment Created" }));
@@ -265,7 +273,9 @@ export async function deleteThread(req, res) {
 export async function dumpThreads(req, res) {
   res.writeHead(200, headerFields);
   res.write(
-    JSON.stringify(await db.threads.dump(req.query.amount, req.query.page, req.query.order))
+    JSON.stringify(
+      await db.threads.dump(req.query.amount, req.query.page, req.query.order)
+    )
   );
   res.end();
 }
@@ -286,13 +296,20 @@ export async function updateLikeCount(req, res) {
   if (req.body.comment) {
     db.comments.changeLikeCount(
       req.body.comment,
-      await db.accounts.toggleLike(req.body.username, req.body.comment, "comment_likes")
+      await db.accounts.toggleLike(
+        req.body.username,
+        req.body.comment,
+        "comment_likes"
+      )
     );
-  }
-  else {
+  } else {
     db.threads.changeLikeCount(
       req.body.thread,
-      await db.accounts.toggleLike(req.body.username, req.body.thread, "thread_likes")
+      await db.accounts.toggleLike(
+        req.body.username,
+        req.body.thread,
+        "thread_likes"
+      )
     );
   }
 
