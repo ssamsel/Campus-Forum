@@ -118,7 +118,7 @@ function handleImageUpload(req) {
 export async function createThread(req, res) {
   // Image upload file size exceeded
   // Handler already ended response so return now
-  if (res.statusCode === 413){
+  if (res.statusCode === 413) {
     return;
   }
 
@@ -199,11 +199,10 @@ export async function createComment(req, res) {
     await db.comments.addChild(req.body.parent_id, comment_id);
   }
 
+  const imagePath = handleImageUpload(req);
   if (imagePath) {
     db.threads.incrementImageCount(req.body.post_id);
   }
-
-  const imagePath = handleImageUpload(req);
   await db.comments.create(
     comment_id,
     req.body.username,
