@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <title>Minuteman Messageboard</title>
+
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css"
+    integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="post.css">
+
+  <script type="module" src="js/post_client.js"></script>
+</head>
+
+<body>
+  <div class="m-5">
+    <p style="float: right" class="medium-text" id="account_link"><a id="" href="login.html">Create Account/Login</a>
+      <a href="/">
+        <h2>Minuteman Messageboard</h2>
+      </a>
+
+      <br><br>
+    <div>
+      <p id="navigation" style="float: left" class="small-text">Home > Newest > Forums > </p><input type="text"
+        style="float: right" class="form-control form-rounded w-25" placeholder=" Search here...">
+    </div>
+    <br><br><br>
+    <div class="container-fluid forum-header">
+      <div class="w-75">
+        <img class="new_thread" src="img/new_thread.png" />
+        <div id="title-div">Title</div>
+        <div class="delete-div" id="delete-div"></div>
+      </div>
+      <div class="col-sm row-item">
+        <div class="poster-div" id="author-div">Author</div>
+      </div>
+    </div>
+
+    <div class="container-fluid post bottom-row">
+      <div class="ml-5 mr-5">
+        <div class="m-4 mx-auto">
+
+          <div id="post-body">Post goes here.</div>
+          <div class="img_upload" id="image"></div>
+          <div style="color: white">Post body goes here.Post body goes here.Post body goes here.Post body goes hey goes
+            here.Post body goes hey goes here.Post body goes hey goes here.Post body goes hey goes here.Post body goes
+            hey goes here.Post body goes st body goes st body goes her</div>
+          <!-- Above was needed to fix issue with element widths. Make better fix eventually. -->
+          <textarea id="textBox" style="width: 100%" class="form-rounded" rows="7"
+            placeholder="What are your thoughts?"></textarea>
+          <br>
+          <button id="post_like_button" style="float: left" type="button" class="like btn">
+            <img class="comment" src="img/heart.png" />
+            <span id="post_like_count" class="like-count">0 Likes</span>
+          </button>
+          <button id="post_comment" style="float: right" type="button" class="btn new-thread-button">Comment</button>
+          <br><br>
+          <input id="image_upload" style="float: right" type="file" accept="image/jpeg, image/png"
+            class="form-control form-rounded w-25" />
+          <br><br>
+        </div>
+      </div>
+    </div>
+    <br><br><br>
+    <div class="container-fluid forum-header">
+      <div class="w-75">
+        <img class="new_thread" src="img/new_thread.png" />
+        Discussion
+      </div>
+    </div>
+
+    <div class="container-fluid post bottom-row">
+      <div class="ml-5 mr-5">
+        <br>
+        <div style="color: white">Post body goes here.Post body goes here.Post body goes here.Post body goes hey goes
+          here.Post body goes hey goes here.Post body goes hey goes here.Post body goes hey goes here.Post body goes
+          hey goes here.Post body goes st body goes st body goes her</div>
+        <div style="width: 100%;" id="comments-div">
+          Comments go here.
+        </div>
+        <br>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
+    integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
+    crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/popper.js@1.12.9/dist/umd/popper.min.js"
+    integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+    crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/js/bootstrap.min.js"
+    integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+    crossorigin="anonymous"></script>
+</body>
+
+</html>

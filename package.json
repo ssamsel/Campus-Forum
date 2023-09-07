@@ -1,0 +1,24 @@
+{
+  "name": "326-project-repo-team-5",
+  "version": "1.0.0",
+  "description": "## Minuteman Messageboard ##",
+  "type": "module",
+  "main": "server/index.js",
+  "directories": {
+    "doc": "docs",
+    "app": "app"
+  },
+  "scripts": {
+    "start": "node server/index.js",
+    "deploy": "node server/index.js -d"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "dotenv": "^16.0.3",
+    "express": "^4.18.2",
+    "express-fileupload": "^1.4.0",
+    "morgan": "^1.10.0",
+    "pg": "^8.10.0"
+  }
+}

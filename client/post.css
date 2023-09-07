@@ -1,0 +1,16 @@
+/* .like span {
+    position: absolute;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%);
+    font-size: 12px;
+    font-weight: bold;
+    color: white;
+    z-index: 9999;
+  } */
+  /* TODO like count isn't being centered in the image */
+  
+
+#title-div {
+  display: inline-block;
+}
